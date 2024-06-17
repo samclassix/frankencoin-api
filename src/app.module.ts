@@ -2,15 +2,19 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 
-// APP IMPORTS
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+// SERVICE IMPORTS
+import { PositionsService } from './positions/positions.service';
+import { PricesService } from './prices/prices.service';
 
-// MODULES IMPORTS
+// CONTROLLER IMPORTS
+import { PositionsController } from './positions/positions.controller';
+import { PricesController } from './prices/prices.controller';
+import { MintinghubController } from './mintinghub/mintinghub.controller';
 
+// APP MODULE
 @Module({
 	imports: [ScheduleModule.forRoot()],
-	controllers: [AppController],
-	providers: [AppService],
+	controllers: [PositionsController, PricesController, MintinghubController],
+	providers: [PositionsService, PricesService],
 })
 export class AppModule {}
