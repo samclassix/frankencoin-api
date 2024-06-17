@@ -41,14 +41,3 @@ export type PositionQuery = {
 	availableForClones: string;
 	minted: string;
 };
-
-export type ERC20InfoObjectArray = {
-	[key: Address]: ERC20Info;
-};
-
-export type ERC20Info = {
-	address: Address;
-	name: string;
-	symbol: string;
-	decimals: number;
-};

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PONDER_CLIENT } from '../app.config';
 import { gql } from '@apollo/client/core';
-import { ERC20Info, ERC20InfoObjectArray, PositionQuery, PositionsQueryObjectArray } from './positions.types';
+import { PositionQuery, PositionsQueryObjectArray } from './positions.types';
 import { Interval } from '@nestjs/schedule';
 import { getAddress } from 'viem';
 
@@ -16,33 +16,6 @@ export class PositionsService {
 
 	getPositions(): PositionsQueryObjectArray {
 		return this.fetchedPositions;
-	}
-
-	getMint(): ERC20Info {
-		const p = Object.values(this.getPositions())[0];
-		if (!p) return null;
-		return {
-			address: p.zchf,
-			name: p.zchfName,
-			symbol: p.zchfSymbol,
-			decimals: p.zchfDecimals,
-		};
-	}
-
-	getCollateral(): ERC20InfoObjectArray {
-		const pos = Object.values(this.getPositions());
-		const c: ERC20InfoObjectArray = {};
-
-		for (const p of pos) {
-			c[p.collateral.toLowerCase()] = {
-				address: p.collateral,
-				name: p.collateralName,
-				symbol: p.collateralSymbol,
-				decimals: p.collateralDecimals,
-			};
-		}
-
-		return c;
 	}
 
 	@Interval(10_000)

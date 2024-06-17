@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import { PriceQueryCurrencies, PriceQueryObjectArray } from './prices.types';
+import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies, PriceQueryObjectArray } from './prices.types';
 import { PositionsService } from 'src/positions/positions.service';
 import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'src/app.config';
 import { Address } from 'viem';
-import { ERC20Info } from 'src/positions/positions.types';
 import { EquityABI } from 'src/contracts/abis/Equity';
 
 @Injectable()
@@ -54,6 +53,33 @@ export class PricesService {
 		}
 	}
 
+	getMint(): ERC20Info {
+		const p = Object.values(this.positionsService.getPositions())[0];
+		if (!p) return null;
+		return {
+			address: p.zchf,
+			name: p.zchfName,
+			symbol: p.zchfSymbol,
+			decimals: p.zchfDecimals,
+		};
+	}
+
+	getCollateral(): ERC20InfoObjectArray {
+		const pos = Object.values(this.positionsService.getPositions());
+		const c: ERC20InfoObjectArray = {};
+
+		for (const p of pos) {
+			c[p.collateral.toLowerCase()] = {
+				address: p.collateral,
+				name: p.collateralName,
+				symbol: p.collateralSymbol,
+				decimals: p.collateralDecimals,
+			};
+		}
+
+		return c;
+	}
+
 	getPrices(): PriceQueryObjectArray {
 		return this.fetchedPrices;
 	}
@@ -62,8 +88,8 @@ export class PricesService {
 	async updatePrices() {
 		this.logger.debug('Updating Prices');
 
-		const m = this.positionsService.getMint();
-		const c = this.positionsService.getCollateral();
+		const m = this.getMint();
+		const c = this.getCollateral();
 
 		if (!m || Object.values(c).length == 0) return;
 		const a = [m, ...Object.values(c)];

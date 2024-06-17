@@ -1,5 +1,16 @@
-import { ERC20Info } from 'src/positions/positions.types';
 import { Address } from 'viem';
+
+// --------------------------------------------------------------------------------
+export type ERC20InfoObjectArray = {
+	[key: Address]: ERC20Info;
+};
+
+export type ERC20Info = {
+	address: Address;
+	name: string;
+	symbol: string;
+	decimals: number;
+};
 
 // --------------------------------------------------------------------------------
 // TODO: Implement other currencies
