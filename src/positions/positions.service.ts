@@ -22,6 +22,7 @@ export class PositionsService {
 	async updatePositons() {
 		this.logger.debug('Updating positions');
 		const { data } = await PONDER_CLIENT.query({
+			fetchPolicy: 'no-cache',
 			query: gql`
 				query {
 					positions(orderBy: "availableForClones", orderDirection: "desc") {
