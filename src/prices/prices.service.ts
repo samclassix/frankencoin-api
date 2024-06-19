@@ -39,7 +39,7 @@ export class PricesService {
 		} else {
 			const calc = (value: number) => {
 				const ref: number = 1718033809979;
-				return value * (1 + ((Date.now() - ref) / (3600 * 24)) * 0.005 + Math.random() * 0.01);
+				return value * (1 + ((Date.now() - ref) / (3600 * 24 * 365)) * 0.001 + Math.random() * 0.01);
 			};
 
 			// TODO: for developer, this is just for testnet soft price mapping
@@ -47,6 +47,7 @@ export class PricesService {
 			if (erc.symbol === 'ZCHF') price = { usd: calc(1.12) };
 			if (erc.symbol === 'WBTC') price = { usd: calc(69000) };
 			if (erc.symbol === 'WETH') price = { usd: calc(3800) };
+			if (erc.symbol === 'UNI') price = { usd: calc(10.54) };
 			if (erc.symbol === 'SUP') price = { usd: calc(12453) };
 			if (erc.symbol === 'BOSS') price = { usd: calc(11.54) };
 			return price;
