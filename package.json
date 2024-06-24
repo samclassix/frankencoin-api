@@ -1,8 +1,11 @@
 {
-	"name": "frankencoin-api",
+	"name": "@frankencoin/api",
 	"version": "0.0.1",
 	"private": false,
 	"license": "MIT",
+	"repository": {
+		"url": "git+https://github.com/frankencoin/frankencoin-api.git"
+	},
 	"scripts": {
 		"build": "nest build",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

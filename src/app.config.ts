@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { http, createPublicClient } from 'viem';
 import { mainnet } from 'viem/chains';
-import { ethereum3 } from './contracts/chains';
+import { ethereum3 } from '../contracts/chains';
 
 // URIs
 export const PONDER_URI_LOCALHOST = 'http://localhost:42069';
@@ -21,10 +21,10 @@ export const PONDER_CLIENT = new ApolloClient({
 });
 
 // VIEM CONFIG
-// FIXME: move to env or white list domain
+// >>>>>> SELECTED CHAIN HERE <<<<<<
 export const VIEM_CHAIN = mainnet;
 export const VIEM_CONFIG = createPublicClient({
-	chain: mainnet,
+	chain: VIEM_CHAIN,
 	transport: http(
 		(VIEM_CHAIN.id as number) === 1
 			? process.env.ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0]

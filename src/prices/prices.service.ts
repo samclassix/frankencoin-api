@@ -4,7 +4,7 @@ import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies, PriceQueryObject
 import { PositionsService } from 'src/positions/positions.service';
 import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'src/app.config';
 import { Address } from 'viem';
-import { EquityABI } from 'src/contracts/abis/Equity';
+import { EquityABI } from 'contracts/abis/Equity';
 
 @Injectable()
 export class PricesService {
@@ -50,6 +50,7 @@ export class PricesService {
 			if (erc.symbol === 'UNI') price = { usd: calc(10.54) };
 			if (erc.symbol === 'SUP') price = { usd: calc(12453) };
 			if (erc.symbol === 'BOSS') price = { usd: calc(11.54) };
+			if (erc.symbol === 'BEES') price = { usd: calc(16) };
 			return price;
 		}
 	}
