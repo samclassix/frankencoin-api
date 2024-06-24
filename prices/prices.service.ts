@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies, PriceQueryObjectArray } from './prices.types';
-import { PositionsService } from 'src/positions/positions.service';
-import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'src/app.config';
+import { PositionsService } from 'positions/positions.service';
+import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'app.config';
 import { Address } from 'viem';
 import { EquityABI } from 'contracts/abis/Equity';
 

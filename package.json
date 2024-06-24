@@ -1,10 +1,11 @@
 {
 	"name": "@frankencoin/api",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"private": false,
 	"license": "MIT",
+	"homepage": "https://api.frankencoin.com",
 	"repository": {
-		"url": "git+https://github.com/frankencoin/frankencoin-api.git"
+		"url": "git+https://github.com/frankencoin-ZCHF/frankencoin-api.git"
 	},
 	"scripts": {
 		"build": "nest build",

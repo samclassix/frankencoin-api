@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { http, createPublicClient } from 'viem';
 import { mainnet } from 'viem/chains';
-import { ethereum3 } from '../contracts/chains';
+import { ethereum3 } from './contracts/chains';
 
 // URIs
 export const PONDER_URI_LOCALHOST = 'http://localhost:42069';
@@ -10,7 +10,7 @@ export const PONDER_URI_DEVELOPER = 'https://ponder.frankencoin.3dotshub.com';
 export const PONDER_URI_ETH3 = 'https://ponder.frankencoin.eth3.3dotshub.com';
 
 // >>>>>> SELECTED URI HERE <<<<<<
-export const PONDER_URI_SELECTED = PONDER_URI_DEVELOPER;
+export const PONDER_URI_SELECTED = PONDER_URI_LOCALHOST;
 // >>>>>> SELECTED URI HERE <<<<<<
 
 // PONDER CLIENT REQUEST
@@ -21,7 +21,7 @@ export const PONDER_CLIENT = new ApolloClient({
 
 // VIEM CONFIG
 // >>>>>> SELECTED CHAIN HERE <<<<<<
-export const VIEM_CHAIN = mainnet;
+export const VIEM_CHAIN = ethereum3;
 export const VIEM_CONFIG = createPublicClient({
 	chain: VIEM_CHAIN,
 	transport: http(

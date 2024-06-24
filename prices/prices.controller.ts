@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ERC20Info, ERC20InfoObjectArray } from 'src/prices/prices.types';
+import { ERC20Info, ERC20InfoObjectArray } from 'prices/prices.types';
 import { PriceQueryObjectArray } from './prices.types';
 import { PricesService } from './prices.service';
 
