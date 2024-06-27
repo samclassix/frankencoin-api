@@ -6,13 +6,15 @@ import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'app.config';
 import { Address } from 'viem';
 import { EquityABI } from 'contracts/abis/Equity';
 
+const randRef: number = Math.random() * 0.4 + 0.8;
+
 @Injectable()
 export class PricesService {
-	private readonly logger = new Logger(PricesService.name);
+	private readonly logger = new Logger(this.constructor.name);
 	private fetchedPrices: PriceQueryObjectArray = {};
 
 	constructor(private readonly positionsService: PositionsService) {
-		setTimeout(() => this.updatePrices(), 100);
+		setTimeout(() => this.updatePrices(), 1000);
 	}
 
 	async fetchSourcesCoingecko(erc: ERC20Info): Promise<PriceQueryCurrencies | null> {
@@ -39,7 +41,7 @@ export class PricesService {
 		} else {
 			const calc = (value: number) => {
 				const ref: number = 1718033809979;
-				return value * (1 + ((Date.now() - ref) / (3600 * 24 * 365)) * 0.001 + Math.random() * 0.01);
+				return value * randRef * (1 + ((Date.now() - ref) / (3600 * 24 * 365)) * 0.001 + Math.random() * 0.01);
 			};
 
 			// TODO: for developer, this is just for testnet soft price mapping
