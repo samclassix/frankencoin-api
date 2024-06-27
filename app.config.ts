@@ -1,27 +1,49 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
-import { http, createPublicClient } from 'viem';
+import { http, createPublicClient, Chain } from 'viem';
 import { mainnet } from 'viem/chains';
 import { ethereum3 } from './contracts/chains';
 
 // URIs
-export const PONDER_URI_LOCALHOST = 'http://localhost:42069';
-export const PONDER_URI_MAINNET = 'https://ponder.frankencoin.com';
-export const PONDER_URI_DEVELOPER = 'https://ponder.frankencoin.3dotshub.com';
-export const PONDER_URI_ETH3 = 'https://ponder.frankencoin.eth3.3dotshub.com';
+export const URIS: { [key: string]: { app: string; api: string; ponder: string; chain: Chain } } = {
+	localhost: {
+		app: 'http://localhost:3000',
+		api: 'http://localhost:3030',
+		ponder: 'http://localhost:42069',
+		chain: ethereum3,
+	},
+	mainnet: {
+		app: 'https://app.frankencoin.com',
+		api: 'https://api.frankencoin.com',
+		ponder: 'https://ponder.frankencoin.com',
+		chain: mainnet,
+	},
+	developer: {
+		app: 'https://app.frankencoin.3dotshub.com',
+		api: 'https://api.frankencoin.3dotshub.com',
+		ponder: 'https://ponder.frankencoin.3dotshub.com',
+		chain: mainnet,
+	},
+	frankencoinOrg: {
+		app: 'https://app.frankencoin.org',
+		api: 'https://api.frankencoin.org',
+		ponder: 'https://ponder.frankencoin.org',
+		chain: mainnet,
+	},
+};
 
 // >>>>>> SELECTED URI HERE <<<<<<
-export const PONDER_URI_SELECTED = PONDER_URI_LOCALHOST;
+export const URI_SELECTED = URIS.localhost;
 // >>>>>> SELECTED URI HERE <<<<<<
 
 // PONDER CLIENT REQUEST
 export const PONDER_CLIENT = new ApolloClient({
-	uri: PONDER_URI_SELECTED,
+	uri: URI_SELECTED.ponder,
 	cache: new InMemoryCache(),
 });
 
 // VIEM CONFIG
 // >>>>>> SELECTED CHAIN HERE <<<<<<
-export const VIEM_CHAIN = ethereum3;
+export const VIEM_CHAIN = URI_SELECTED.chain;
 export const VIEM_CONFIG = createPublicClient({
 	chain: VIEM_CHAIN,
 	transport: http(
