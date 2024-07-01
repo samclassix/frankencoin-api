@@ -47,7 +47,9 @@ export class PricesService {
 			// TODO: for developer, this is just for testnet soft price mapping
 			let price = { usd: calc(1) };
 			if (erc.symbol === 'ZCHF') price = { usd: calc(1.12) };
+			if (erc.symbol === 'BTC') price = { usd: calc(69000) };
 			if (erc.symbol === 'WBTC') price = { usd: calc(69000) };
+			if (erc.symbol === 'ETH') price = { usd: calc(3800) };
 			if (erc.symbol === 'WETH') price = { usd: calc(3800) };
 			if (erc.symbol === 'UNI') price = { usd: calc(10.54) };
 			if (erc.symbol === 'SUP') price = { usd: calc(12453) };

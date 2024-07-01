@@ -1,56 +1,52 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { http, createPublicClient, Chain } from 'viem';
-import { mainnet } from 'viem/chains';
-import { ethereum3 } from './contracts/chains';
+import { mainnet, polygon } from 'viem/chains';
+// import { ethereum3 } from './contracts/chains';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// URIs
-export const URIS: { [key: string]: { app: string; api: string; ponder: string; chain: Chain } } = {
+// CONFIG
+export const CONFIG_PROFILE = 'localhostMainnet'; // <<<<<< SELECT CONFIG HERE <<<<<<
+export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Chain } } = {
 	localhost: {
-		app: 'http://localhost:3000',
-		api: 'http://localhost:3030',
-		ponder: 'http://localhost:42069',
-		chain: ethereum3,
+		indexer: 'http://localhost:42069',
+		// rpc: ethereum3.rpcUrls.default.http[0],
+		rpc: process.env.RPC_URL_POLYGON,
+		chain: polygon,
+	},
+	localhostMainnet: {
+		indexer: 'http://localhost:42069',
+		rpc: process.env.RPC_URL_MAINNET,
+		chain: mainnet,
 	},
 	mainnet: {
-		app: 'https://app.frankencoin.com',
-		api: 'https://api.frankencoin.com',
-		ponder: 'https://ponder.frankencoin.com',
+		indexer: 'https://ponder.frankencoin.com',
+		rpc: process.env.RPC_URL_MAINNET,
 		chain: mainnet,
 	},
 	developer: {
-		app: 'https://app.frankencoin.3dotshub.com',
-		api: 'https://api.frankencoin.3dotshub.com',
-		ponder: 'https://ponder.frankencoin.3dotshub.com',
+		indexer: 'https://ponder.frankencoin.3dotshub.com',
+		rpc: process.env.RPC_URL_MAINNET,
 		chain: mainnet,
 	},
-	frankencoinOrg: {
-		app: 'https://app.frankencoin.org',
-		api: 'https://api.frankencoin.org',
-		ponder: 'https://ponder.frankencoin.org',
-		chain: mainnet,
+	frankencoinOrganizationTestnet: {
+		indexer: 'https://ponder.frankencoin.org',
+		rpc: process.env.RPC_URL_POLYGON,
+		chain: polygon,
 	},
 };
 
-// >>>>>> SELECTED URI HERE <<<<<<
-export const URI_SELECTED = URIS.localhost;
-// >>>>>> SELECTED URI HERE <<<<<<
-
 // PONDER CLIENT REQUEST
 export const PONDER_CLIENT = new ApolloClient({
-	uri: URI_SELECTED.ponder,
+	uri: CONFIG[CONFIG_PROFILE].indexer,
 	cache: new InMemoryCache(),
 });
 
 // VIEM CONFIG
-// >>>>>> SELECTED CHAIN HERE <<<<<<
-export const VIEM_CHAIN = URI_SELECTED.chain;
+export const VIEM_CHAIN = CONFIG[CONFIG_PROFILE].chain;
 export const VIEM_CONFIG = createPublicClient({
 	chain: VIEM_CHAIN,
-	transport: http(
-		(VIEM_CHAIN.id as number) === 1
-			? process.env.ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0]
-			: ethereum3.rpcUrls.default.http[0]
-	),
+	transport: http(CONFIG[CONFIG_PROFILE].rpc),
 });
 
 // COINGECKO API KEY
