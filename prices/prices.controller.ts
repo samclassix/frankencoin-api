@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ERC20Info, ERC20InfoObjectArray } from 'prices/prices.types';
-import { PriceQueryObjectArray } from './prices.types';
+import { ApiPriceERC20, ApiPriceERC20Mapping, ApiPriceListing } from 'prices/prices.types';
 import { PricesService } from './prices.service';
 
 @ApiTags('Prices Controller')
@@ -13,23 +12,23 @@ export class PricesController {
 	@ApiResponse({
 		description: 'Returns a list of price queries',
 	})
-	getList(): PriceQueryObjectArray {
+	getList(): ApiPriceListing {
 		return this.pricesService.getPrices();
 	}
 
-	@Get('mint')
+	@Get('erc20/mint')
 	@ApiResponse({
 		description: 'Returns ERC20 information about the mint token',
 	})
-	getMint(): ERC20Info {
+	getMint(): ApiPriceERC20 {
 		return this.pricesService.getMint();
 	}
 
-	@Get('collateral')
+	@Get('erc20/collateral')
 	@ApiResponse({
 		description: 'Returns a list of ERC20 collateral token information',
 	})
-	getCollateral(): ERC20InfoObjectArray {
+	getCollateral(): ApiPriceERC20Mapping {
 		return this.pricesService.getCollateral();
 	}
 }

@@ -1,9 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PONDER_CLIENT, VIEM_CONFIG } from '../app.config';
 import { gql } from '@apollo/client/core';
-import { PositionQuery, PositionsQueryObjectArray } from './positions.types';
+import {
+	ApiPositionsListing,
+	ApiPositionsOwners,
+	OwnersPositionsObjectArray,
+	PositionQuery,
+	PositionsQueryObjectArray,
+} from './positions.types';
 import { Interval } from '@nestjs/schedule';
-import { erc20Abi, getAddress } from 'viem';
+import { Address, erc20Abi, getAddress } from 'viem';
 
 @Injectable()
 export class PositionsService {
@@ -14,8 +20,44 @@ export class PositionsService {
 		setTimeout(() => this.updatePositons(), 100);
 	}
 
-	getPositions(): PositionsQueryObjectArray {
-		return this.fetchedPositions;
+	getPositionsList(): ApiPositionsListing {
+		const pos = this.fetchedPositions;
+		return { num: Object.keys(pos).length, list: pos };
+	}
+
+	getPositionsOpen(): ApiPositionsListing {
+		const pos = this.fetchedPositions;
+		const open = Object.values(pos).filter((p) => !p.closed && !p.denied);
+		const mapped: PositionsQueryObjectArray = {};
+		for (const p of open) {
+			mapped[p.position] = p;
+		}
+		return { num: Object.keys(mapped).length, list: mapped };
+	}
+
+	getPositionsRequests(): ApiPositionsListing {
+		// FIXME: make time diff flexable, changeable between chains/SC
+		const TIMEDIFF_MS = 5 * 24 * 60 * 60 * 1000;
+		const pos = this.fetchedPositions;
+		const request = Object.values(pos).filter((p) => p.start * 1000 + TIMEDIFF_MS > Date.now());
+		const mapped: PositionsQueryObjectArray = {};
+		for (const p of request) {
+			mapped[p.position] = p;
+		}
+		return { num: Object.keys(mapped).length, list: mapped };
+	}
+
+	getPositionsOwners(): ApiPositionsOwners {
+		const ow: OwnersPositionsObjectArray = {};
+		for (const p of Object.values(this.fetchedPositions)) {
+			if (!ow[p.owner]) ow[p.owner] = [];
+			ow[p.owner].push(p);
+		}
+		return {
+			num: Object.keys(ow).length,
+			owners: Object.keys(ow) as Address[],
+			map: ow,
+		};
 	}
 
 	@Interval(10_000)

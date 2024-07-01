@@ -12,6 +12,7 @@ import {
 } from './ecosystem.frankencoin.types';
 import { ADDRESS } from 'contracts/address';
 import { PricesService } from 'prices/prices.service';
+import { Address } from 'viem';
 
 @Injectable()
 export class EcosystemFrankencoinService {
@@ -46,6 +47,7 @@ export class EcosystemFrankencoinService {
 	getEcosystemMintBurnMapping(): ApiEcosystemMintBurnMapping {
 		return {
 			num: Object.keys(this.ecosystemMintBurnMapping).length,
+			addresses: Object.keys(this.ecosystemMintBurnMapping) as Address[],
 			map: this.ecosystemMintBurnMapping,
 		};
 	}

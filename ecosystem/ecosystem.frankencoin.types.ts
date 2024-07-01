@@ -1,7 +1,6 @@
-// --------------------------------------------------------------------------
-
 import { Address } from 'viem';
 
+// --------------------------------------------------------------------------
 // Ponder return types
 export type EcosystemQueryItem = {
 	id: string;
@@ -32,6 +31,7 @@ export type MintBurnAddressMapperQueryItem = {
 };
 
 // --------------------------------------------------------------------------
+// Service
 export type ServiceEcosystemFrankencoin = {
 	raw: {
 		mint: string;
@@ -53,6 +53,7 @@ export type ServiceEcosystemMintBurnMapping = {
 };
 
 // --------------------------------------------------------------------------
+// Api
 export type ApiEcosystemFrankencoinInfo = ServiceEcosystemFrankencoin & {
 	erc20: {
 		name: string;
@@ -71,6 +72,7 @@ export type ApiEcosystemFrankencoinInfo = ServiceEcosystemFrankencoin & {
 
 export type ApiEcosystemMintBurnMapping = {
 	num: number;
+	addresses: Address[];
 	map: {
 		[key: Address]: { mint: number; burn: number };
 	};

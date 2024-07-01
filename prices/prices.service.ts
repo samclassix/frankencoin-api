@@ -1,6 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies, PriceQueryObjectArray } from './prices.types';
+import {
+	ApiPriceERC20,
+	ApiPriceERC20Mapping,
+	ApiPriceListing,
+	ERC20Info,
+	ERC20InfoObjectArray,
+	PriceQueryCurrencies,
+	PriceQueryObjectArray,
+} from './prices.types';
 import { PositionsService } from 'positions/positions.service';
 import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'app.config';
 import { Address } from 'viem';
@@ -15,6 +23,37 @@ export class PricesService {
 
 	constructor(private readonly positionsService: PositionsService) {
 		setTimeout(() => this.updatePrices(), 1000);
+	}
+
+	getPrices(): ApiPriceListing {
+		return this.fetchedPrices;
+	}
+
+	getMint(): ApiPriceERC20 {
+		const p = Object.values(this.positionsService.getPositionsList().list)[0];
+		if (!p) return null;
+		return {
+			address: p.zchf,
+			name: p.zchfName,
+			symbol: p.zchfSymbol,
+			decimals: p.zchfDecimals,
+		};
+	}
+
+	getCollateral(): ApiPriceERC20Mapping {
+		const pos = Object.values(this.positionsService.getPositionsList().list);
+		const c: ERC20InfoObjectArray = {};
+
+		for (const p of pos) {
+			c[p.collateral.toLowerCase()] = {
+				address: p.collateral,
+				name: p.collateralName,
+				symbol: p.collateralSymbol,
+				decimals: p.collateralDecimals,
+			};
+		}
+
+		return c;
 	}
 
 	async fetchSourcesCoingecko(erc: ERC20Info): Promise<PriceQueryCurrencies | null> {
@@ -57,37 +96,6 @@ export class PricesService {
 			if (erc.symbol === 'BEES') price = { usd: calc(16) };
 			return price;
 		}
-	}
-
-	getMint(): ERC20Info {
-		const p = Object.values(this.positionsService.getPositions())[0];
-		if (!p) return null;
-		return {
-			address: p.zchf,
-			name: p.zchfName,
-			symbol: p.zchfSymbol,
-			decimals: p.zchfDecimals,
-		};
-	}
-
-	getCollateral(): ERC20InfoObjectArray {
-		const pos = Object.values(this.positionsService.getPositions());
-		const c: ERC20InfoObjectArray = {};
-
-		for (const p of pos) {
-			c[p.collateral.toLowerCase()] = {
-				address: p.collateral,
-				name: p.collateralName,
-				symbol: p.collateralSymbol,
-				decimals: p.collateralDecimals,
-			};
-		}
-
-		return c;
-	}
-
-	getPrices(): PriceQueryObjectArray {
-		return this.fetchedPrices;
 	}
 
 	@Interval(10_000)
