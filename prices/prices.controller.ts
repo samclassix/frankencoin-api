@@ -26,7 +26,7 @@ export class PricesController {
 
 	@Get('erc20/collateral')
 	@ApiResponse({
-		description: 'Returns a list of ERC20 collateral token information',
+		description: 'Returns a list of ERC20 information about collateral token',
 	})
 	getCollateral(): ApiPriceERC20Mapping {
 		return this.pricesService.getCollateral();

@@ -27,7 +27,7 @@ export class EcosystemFrankencoinController {
 
 	@Get('mintburnmapping')
 	@ApiResponse({
-		description: 'Returns mintburnmapping of frankencoin.',
+		description: 'Returns a map of addresses mapped for frankencoin mints and burns.',
 	})
 	getFrankencoinMintBurnMapping(): ApiEcosystemMintBurnMapping {
 		return this.frankencoin.getEcosystemMintBurnMapping();

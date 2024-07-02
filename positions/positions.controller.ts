@@ -18,7 +18,7 @@ export class PositionsController {
 
 	@Get('open')
 	@ApiResponse({
-		description: 'Returns a list of open positions',
+		description: 'Returns a filtered list of open positions',
 	})
 	getOpen(): ApiPositionsListing {
 		return this.positionsService.getPositionsOpen();
@@ -26,7 +26,7 @@ export class PositionsController {
 
 	@Get('requests')
 	@ApiResponse({
-		description: 'Returns a list of requested positions (default: less then 5 days old)',
+		description: 'Returns a filtered list of requested positions (default: less then 5 days old)',
 	})
 	getRequestPositions(): ApiPositionsListing {
 		return this.positionsService.getPositionsRequests();
@@ -34,7 +34,7 @@ export class PositionsController {
 
 	@Get('owners')
 	@ApiResponse({
-		description: 'Returns a list of positions grouped by owner',
+		description: 'Returns a map of positions mapped by owner',
 	})
 	getOwners(): ApiPositionsOwners {
 		return this.positionsService.getPositionsOwners();
