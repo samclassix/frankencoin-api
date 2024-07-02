@@ -10,6 +10,7 @@ import {
 } from './positions.types';
 import { Interval } from '@nestjs/schedule';
 import { Address, erc20Abi, getAddress } from 'viem';
+import { FIVEDAYS_MS } from 'utils/const-helper';
 
 @Injectable()
 export class PositionsService {
@@ -37,9 +38,8 @@ export class PositionsService {
 
 	getPositionsRequests(): ApiPositionsListing {
 		// FIXME: make time diff flexable, changeable between chains/SC
-		const TIMEDIFF_MS = 5 * 24 * 60 * 60 * 1000;
 		const pos = this.fetchedPositions;
-		const request = Object.values(pos).filter((p) => p.start * 1000 + TIMEDIFF_MS > Date.now());
+		const request = Object.values(pos).filter((p) => p.start * 1000 + FIVEDAYS_MS > Date.now());
 		const mapped: PositionsQueryObjectArray = {};
 		for (const p of request) {
 			mapped[p.position] = p;
@@ -50,8 +50,9 @@ export class PositionsService {
 	getPositionsOwners(): ApiPositionsOwners {
 		const ow: OwnersPositionsObjectArray = {};
 		for (const p of Object.values(this.fetchedPositions)) {
-			if (!ow[p.owner]) ow[p.owner] = [];
-			ow[p.owner].push(p);
+			const owner = p.owner.toLowerCase();
+			if (!ow[owner]) ow[owner] = [];
+			ow[owner].push(p);
 		}
 		return {
 			num: Object.keys(ow).length,

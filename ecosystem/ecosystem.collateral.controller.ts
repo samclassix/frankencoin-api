@@ -8,15 +8,6 @@ import {
 	ApiEcosystemCollateralStats,
 } from './ecosystem.collateral.types';
 
-/**
- * 
- * {
-  "totalSupplyZchf": 9151881.025188236,
-  "totalValueLockedInChf": 15931372.86543195,
-  "fpsMarketCapInChf": 11486515.603335824
-}
- */
-
 @ApiTags('Ecosystem Controller')
 @Controller('ecosystem/collateral')
 export class EcosystemCollateralController {
