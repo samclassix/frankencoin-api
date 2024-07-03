@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Interval } from '@nestjs/schedule';
 import { gql } from '@apollo/client/core';
 import { PONDER_CLIENT } from 'app.config';
 import {
@@ -28,9 +27,7 @@ export class ChallengesService {
 	private fetchedChallenges: ChallengesQueryItemMapping = {};
 	private fetchedBids: BidsQueryItemMapping = {};
 
-	constructor() {
-		setTimeout(() => this.updateChallenges(), 100);
-	}
+	constructor() {}
 
 	getChallenges(): ApiChallengesListing {
 		return {
@@ -131,7 +128,6 @@ export class ChallengesService {
 		};
 	}
 
-	@Interval(10_000)
 	async updateChallenges() {
 		this.logger.debug('Updating challenges');
 		const challenges = await PONDER_CLIENT.query({
@@ -174,7 +170,6 @@ export class ChallengesService {
 		this.fetchedChallenges = { ...this.fetchedChallenges, ...mapped };
 	}
 
-	@Interval(10_000)
 	async updateBids() {
 		this.logger.debug('Updating bids');
 		const bids = await PONDER_CLIENT.query({

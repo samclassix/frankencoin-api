@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Interval } from '@nestjs/schedule';
 import {
 	ApiPriceERC20,
 	ApiPriceERC20Mapping,
@@ -22,9 +21,7 @@ export class PricesService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedPrices: PriceQueryObjectArray = {};
 
-	constructor(private readonly positionsService: PositionsService) {
-		setTimeout(() => this.updatePrices(), 1000);
-	}
+	constructor(private readonly positionsService: PositionsService) {}
 
 	getPrices(): ApiPriceListing {
 		return this.fetchedPrices;
@@ -102,7 +99,6 @@ export class PricesService {
 		}
 	}
 
-	@Interval(10_000)
 	async updatePrices() {
 		this.logger.debug('Updating Prices');
 

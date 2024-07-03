@@ -8,7 +8,6 @@ import {
 	PositionQuery,
 	PositionsQueryObjectArray,
 } from './positions.types';
-import { Interval } from '@nestjs/schedule';
 import { Address, erc20Abi, getAddress } from 'viem';
 import { FIVEDAYS_MS } from 'utils/const-helper';
 
@@ -17,9 +16,7 @@ export class PositionsService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedPositions: PositionsQueryObjectArray = {};
 
-	constructor() {
-		setTimeout(() => this.updatePositons(), 100);
-	}
+	constructor() {}
 
 	getPositionsList(): ApiPositionsListing {
 		const pos = this.fetchedPositions;
@@ -61,7 +58,6 @@ export class PositionsService {
 		};
 	}
 
-	@Interval(10_000)
 	async updatePositons() {
 		this.logger.debug('Updating positions');
 		const { data } = await PONDER_CLIENT.query({

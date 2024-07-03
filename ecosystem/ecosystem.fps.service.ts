@@ -6,8 +6,15 @@ import { ABIS, ADDRESS } from 'contracts';
 @Injectable()
 export class EcosystemFpsService {
 	private readonly logger = new Logger(this.constructor.name);
+	private fpsInfo: ApiEcosystemFpsInfo;
 
-	async getEcosystemFpsInfo(): Promise<ApiEcosystemFpsInfo> {
+	getEcosystemFpsInfo(): ApiEcosystemFpsInfo {
+		return this.fpsInfo;
+	}
+
+	async updateFpsInfo() {
+		this.logger.debug('Updating EcosystemFpsInfo');
+
 		const chainId = VIEM_CONFIG.chain.id;
 		const addr = ADDRESS[chainId].equity;
 
@@ -25,7 +32,7 @@ export class EcosystemFpsService {
 		const p = parseInt(fetchedPrice.toString()) / 1e18;
 		const s = parseInt(fetchedTotalSupply.toString()) / 1e18;
 
-		return {
+		this.fpsInfo = {
 			values: {
 				price: p,
 				totalSupply: s,

@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Interval } from '@nestjs/schedule';
 import { gql } from '@apollo/client/core';
 import { CONFIG, CONFIG_PROFILE, PONDER_CLIENT } from 'app.config';
 import {
@@ -52,9 +51,8 @@ export class EcosystemFrankencoinService {
 		};
 	}
 
-	@Interval(10_000)
 	async updateEcosystemKeyValues() {
-		this.logger.debug('updateEcosystemKeyValues');
+		this.logger.debug('Updating EcosystemKeyValues');
 		const ecosystem = await PONDER_CLIENT.query({
 			fetchPolicy: 'no-cache',
 			query: gql`
@@ -99,9 +97,8 @@ export class EcosystemFrankencoinService {
 		};
 	}
 
-	@Interval(10_000)
 	async updateEcosystemMintBurnMapping() {
-		this.logger.debug('updateEcosystemMintBurnMapping');
+		this.logger.debug('Updating EcosystemMintBurnMapping');
 
 		// FIXME: build a fetcher... with start and offset. (first:2 offset:2)
 		const response = await PONDER_CLIENT.query({
