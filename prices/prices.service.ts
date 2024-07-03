@@ -38,6 +38,15 @@ export class PricesService {
 		};
 	}
 
+	getFps(): ApiPriceERC20 {
+		return {
+			address: ADDRESS[VIEM_CHAIN.id].equity,
+			name: 'Frankencoin Pool Share',
+			symbol: 'FPS',
+			decimals: 18,
+		};
+	}
+
 	getCollateral(): ApiPriceERC20Mapping {
 		const pos = Object.values(this.positionsService.getPositionsList().list);
 		const c: ERC20InfoObjectArray = {};
@@ -55,22 +64,22 @@ export class PricesService {
 	}
 
 	async fetchSourcesCoingecko(erc: ERC20Info): Promise<PriceQueryCurrencies | null> {
+		// override for Frankencoin Pool Share
+		if (erc.address.toLowerCase() === ADDRESS[VIEM_CHAIN.id].equity.toLowerCase()) {
+			const fetchedPrice = await VIEM_CONFIG.readContract({
+				address: erc.address,
+				abi: EquityABI,
+				functionName: 'price',
+			});
+			const price = Math.round((parseInt(fetchedPrice.toString()) / 10 ** erc.decimals) * 100) / 100;
+			const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
+			const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
+			if (!zchfPrice) return null;
+			return { usd: price * zchfPrice };
+		}
+
+		// all other mainnet addresses
 		if ((VIEM_CHAIN.id as number) === 1) {
-			// override for Frankencoin Pool Share
-			if (erc.address.toLowerCase() === ADDRESS[VIEM_CHAIN.id].equity.toLowerCase()) {
-				const fetchedPrice = await VIEM_CONFIG.readContract({
-					address: erc.address,
-					abi: EquityABI,
-					functionName: 'price',
-				});
-				// TODO: convert price from USD to ZCHF,
-				const price = Math.round((parseInt(fetchedPrice.toString()) / 10 ** erc.decimals) * 100) / 100;
-				const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
-				const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
-				if (!zchfPrice) return null;
-				return { usd: price * zchfPrice };
-			}
-			// all other mainnet addresses
 			const url = `/api/v3/simple/token_price/ethereum?contract_addresses=${erc.address}&vs_currencies=usd`;
 			const data = await (await COINGECKO_CLIENT(url)).json();
 			if (data.status) {
@@ -102,11 +111,12 @@ export class PricesService {
 	async updatePrices() {
 		this.logger.debug('Updating Prices');
 
+		const fps = this.getFps();
 		const m = this.getMint();
 		const c = this.getCollateral();
 
 		if (!m || Object.values(c).length == 0) return;
-		const a = [m, ...Object.values(c)];
+		const a = [fps, m, ...Object.values(c)];
 
 		const pricesQuery: PriceQueryObjectArray = {};
 		let pricesQueryNewCount: number = 0;

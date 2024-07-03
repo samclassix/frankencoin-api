@@ -24,6 +24,14 @@ export class PricesController {
 		return this.pricesService.getMint();
 	}
 
+	@Get('erc20/fps')
+	@ApiResponse({
+		description: 'Returns ERC20 information about the FPS token',
+	})
+	getFps(): ApiPriceERC20 {
+		return this.pricesService.getFps();
+	}
+
 	@Get('erc20/collateral')
 	@ApiResponse({
 		description: 'Returns a list of ERC20 information about collateral token',
