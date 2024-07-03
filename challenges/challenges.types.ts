@@ -1,22 +1,102 @@
 import { Address } from 'viem';
 
-export type ChallengeQuery = {
+// --------------------------------------------------------------------------
+// Ponder return types
+export type ChallengesQueryItem = {
+	id: ChallengesId;
 	position: Address;
-	challenger: Address;
 	number: bigint;
+
+	challenger: Address;
 	start: bigint;
+	created: bigint;
 	duration: bigint;
 	size: bigint;
+
+	bids: bigint;
 	filledSize: bigint;
 	acquiredCollateral: bigint;
-	bid: bigint;
 	status: string;
 };
 
-export type ChallengeQueryObjectArray = {
-	[key: Address]: ChallengeQuery;
+export type BidsQueryItem = {
+	id: BidsId;
+	position: Address;
+	number: bigint;
+	numberBid: bigint;
+
+	bidder: Address;
+	created: bigint;
+	bidType: BidsType;
+	bid: bigint;
+
+	bids: bigint;
+	filledSize: bigint;
+	acquiredCollateral: bigint;
+	challengeSize: bigint;
 };
-export type ChallengeQueryObject = {
+
+// --------------------------------------------------------------------------
+// Service
+export type ChallengesStatus = 'Active' | 'Success';
+export type ChallengesId = `${Address}-challenge-${bigint}`;
+
+export type ChallengesQueryItemMapping = {
+	[key: ChallengesId]: ChallengesQueryItem;
+};
+
+export type ChallengesChallengersMapping = { [key: Address]: ChallengesQueryItem[] };
+export type ChallengesPositionsMapping = { [key: Address]: ChallengesQueryItem[] };
+
+export type BidsType = 'Averted' | 'Succeeded';
+export type BidsId = `${Address}-challenge-${bigint}-bid-${bigint}`;
+
+export type BidsQueryItemMapping = {
+	[key: BidsId]: BidsQueryItem;
+};
+
+export type BidsBidderMapping = { [key: Address]: BidsQueryItem[] };
+export type BidsChallengesMapping = { [key: Address]: BidsQueryItem[] };
+export type BidsPositionsMapping = { [key: Address]: BidsQueryItem[] };
+
+// --------------------------------------------------------------------------
+// Api
+export type ApiChallengesListing = {
 	num: number;
-	positions: ChallengeQueryObjectArray;
+	list: ChallengesQueryItemMapping;
+};
+
+export type ApiChallengesChallengers = {
+	num: number;
+	challengers: Address[];
+	map: ChallengesChallengersMapping;
+};
+
+export type ApiChallengesPositions = {
+	num: number;
+	positions: Address[];
+	map: ChallengesPositionsMapping;
+};
+
+export type ApiBidsListing = {
+	num: number;
+	list: BidsQueryItemMapping;
+};
+
+export type ApiBidsBidders = {
+	num: number;
+	bidders: Address[];
+	map: BidsBidderMapping;
+};
+
+export type ApiBidsChallenges = {
+	num: number;
+	challenges: Address[];
+	map: BidsChallengesMapping;
+};
+
+export type ApiBidsPositions = {
+	num: number;
+	positions: Address[];
+	map: BidsPositionsMapping;
 };

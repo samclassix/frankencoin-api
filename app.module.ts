@@ -9,7 +9,7 @@ import { EcosystemFpsService } from 'ecosystem/ecosystem.fps.service';
 import { EcosystemFrankencoinService } from 'ecosystem/ecosystem.frankencoin.service';
 import { PositionsService } from 'positions/positions.service';
 import { PricesService } from 'prices/prices.service';
-// import { ChallengesService } from 'challenges/challenges.service';
+import { ChallengesService } from 'challenges/challenges.service';
 
 // CONTROLLER IMPORTS
 import { EcosystemCollateralController } from 'ecosystem/ecosystem.collateral.controller';
@@ -17,9 +17,7 @@ import { EcosystemFpsController } from 'ecosystem/ecosystem.fps.controller';
 import { EcosystemFrankencoinController } from 'ecosystem/ecosystem.frankencoin.controller';
 import { PositionsController } from 'positions/positions.controller';
 import { PricesController } from 'prices/prices.controller';
-// import { ChallengesController } from 'challenges/challenges.controller';
-import { MintinghubController } from 'mintinghub/mintinghub.controller';
-import { CustomController } from 'custom/custom.controller';
+import { ChallengesController } from 'challenges/challenges.controller';
 
 // APP MODULE
 @Module({
@@ -30,9 +28,7 @@ import { CustomController } from 'custom/custom.controller';
 		EcosystemFrankencoinController,
 		PositionsController,
 		PricesController,
-		// ChallengesController,
-		MintinghubController,
-		CustomController,
+		ChallengesController,
 	],
 	providers: [
 		EcosystemCollateralService,
@@ -40,7 +36,7 @@ import { CustomController } from 'custom/custom.controller';
 		EcosystemFrankencoinService,
 		PositionsService,
 		PricesService,
-		// ChallengesService,
+		ChallengesService,
 	],
 })
 export class AppModule {}
