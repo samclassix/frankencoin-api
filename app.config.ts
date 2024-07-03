@@ -34,6 +34,11 @@ export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Cha
 		rpc: process.env.RPC_URL_POLYGON,
 		chain: polygon,
 	},
+	frankencoinOrganizationMainnet: {
+		indexer: 'https://ponder.frankencoin.org',
+		rpc: process.env.RPC_URL_MAINNET,
+		chain: mainnet,
+	},
 };
 
 // PONDER CLIENT REQUEST
