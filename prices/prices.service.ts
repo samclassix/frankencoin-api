@@ -13,6 +13,7 @@ import { PositionsService } from 'positions/positions.service';
 import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'app.config';
 import { Address } from 'viem';
 import { EquityABI } from 'contracts/abis/Equity';
+import { ADDRESS } from 'contracts';
 
 const randRef: number = Math.random() * 0.4 + 0.8;
 
@@ -59,7 +60,7 @@ export class PricesService {
 	async fetchSourcesCoingecko(erc: ERC20Info): Promise<PriceQueryCurrencies | null> {
 		if ((VIEM_CHAIN.id as number) === 1) {
 			// override for Frankencoin Pool Share
-			if (erc.address.toLowerCase() === '0x1ba26788dfde592fec8bcb0eaff472a42be341b2') {
+			if (erc.address.toLowerCase() === ADDRESS[VIEM_CHAIN.id].equity.toLowerCase()) {
 				const fetchedPrice = await VIEM_CONFIG.readContract({
 					address: erc.address,
 					abi: EquityABI,
@@ -67,7 +68,10 @@ export class PricesService {
 				});
 				// TODO: convert price from USD to ZCHF,
 				const price = Math.round((parseInt(fetchedPrice.toString()) / 10 ** erc.decimals) * 100) / 100;
-				return { usd: price };
+				const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
+				const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
+				if (!zchfPrice) return null;
+				return { usd: price * zchfPrice };
 			}
 			// all other mainnet addresses
 			const url = `/api/v3/simple/token_price/ethereum?contract_addresses=${erc.address}&vs_currencies=usd`;
@@ -132,7 +136,7 @@ export class PricesService {
 			}
 
 			// needs to update => try to fetch
-			if (oldEntry.timestamp + 120_000 < Date.now()) {
+			if (oldEntry.timestamp + 300_000 < Date.now()) {
 				pricesQueryUpdateCount += 1;
 				this.logger.debug(`Price for ${erc.name} out of date, trying to fetch from coingecko`);
 				const price = await this.fetchSourcesCoingecko(erc);
