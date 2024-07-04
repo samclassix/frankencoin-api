@@ -1,9 +1,6 @@
 import { Address } from 'viem';
-
-export type PositionsQueryObjectArray = {
-	[key: Address]: PositionQuery;
-};
-
+// ----------------------------------------------------------------------------------
+// Ponder
 export type PositionQuery = {
 	position: Address;
 	owner: Address;
@@ -40,4 +37,27 @@ export type PositionQuery = {
 	availableForPosition: string;
 	availableForClones: string;
 	minted: string;
+};
+
+// ----------------------------------------------------------------------------------
+// Service
+export type PositionsQueryObjectArray = {
+	[key: Address]: PositionQuery;
+};
+
+export type OwnersPositionsObjectArray = {
+	[key: Address]: PositionQuery[];
+};
+
+// ----------------------------------------------------------------------------------
+// Api
+export type ApiPositionsListing = {
+	num: number;
+	list: PositionsQueryObjectArray;
+};
+
+export type ApiPositionsOwners = {
+	num: number;
+	owners: Address[];
+	map: OwnersPositionsObjectArray;
 };
