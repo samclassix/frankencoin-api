@@ -19,10 +19,7 @@ export class EcosystemFrankencoinService {
 	private ecosystemFrankencoin: ServiceEcosystemFrankencoin;
 	private ecosystemMintBurnMapping: ServiceEcosystemMintBurnMapping = {};
 
-	constructor(private readonly pricesService: PricesService) {
-		setTimeout(() => this.updateEcosystemKeyValues(), 100);
-		setTimeout(() => this.updateEcosystemMintBurnMapping(), 100);
-	}
+	constructor(private readonly pricesService: PricesService) {}
 
 	getEcosystemFrankencoinInfo(): ApiEcosystemFrankencoinInfo {
 		return {
