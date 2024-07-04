@@ -72,7 +72,8 @@ export class PricesService {
 			const priceInChf = this.fps.getEcosystemFpsInfo()?.values?.price;
 			const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
 			const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
-			return { usd: priceInChf * zchfPrice, chf: priceInChf };
+			if (!zchfPrice) return null;
+			return { usd: priceInChf * zchfPrice };
 		}
 
 		// all other mainnet addresses
@@ -127,7 +128,7 @@ export class PricesService {
 			const addr = erc.address.toLowerCase() as Address;
 			const oldEntry = this.fetchedPrices[addr];
 
-			if (!oldEntry || !oldEntry?.price?.usd) {
+			if (!oldEntry) {
 				pricesQueryNewCount += 1;
 				this.logger.debug(`Price for ${erc.name} not available, trying to fetch from coingecko`);
 				const price = await this.fetchSourcesCoingecko(erc);
