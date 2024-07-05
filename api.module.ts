@@ -18,7 +18,7 @@ import { EcosystemFrankencoinController } from 'ecosystem/ecosystem.frankencoin.
 import { PositionsController } from 'positions/positions.controller';
 import { PricesController } from 'prices/prices.controller';
 import { ChallengesController } from 'challenges/challenges.controller';
-import { AppService } from 'app.service';
+import { ApiService } from 'api.service';
 
 // APP MODULE
 @Module({
@@ -32,7 +32,7 @@ import { AppService } from 'app.service';
 		ChallengesController,
 	],
 	providers: [
-		AppService,
+		ApiService,
 		EcosystemCollateralService,
 		EcosystemFpsService,
 		EcosystemFrankencoinService,

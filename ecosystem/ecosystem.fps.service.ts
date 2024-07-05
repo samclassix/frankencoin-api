@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { VIEM_CONFIG } from 'app.config';
+import { VIEM_CONFIG } from 'api.config';
 import { ApiEcosystemFpsInfo } from './ecosystem.fps.types';
 import { ABIS, ADDRESS } from 'contracts';
 

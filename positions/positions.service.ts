@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PONDER_CLIENT, VIEM_CONFIG } from '../app.config';
+import { PONDER_CLIENT, VIEM_CONFIG } from '../api.config';
 import { gql } from '@apollo/client/core';
 import {
 	ApiPositionsListing,

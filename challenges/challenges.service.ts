@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core';
-import { PONDER_CLIENT } from 'app.config';
+import { PONDER_CLIENT } from 'api.config';
 import {
 	ApiBidsBidders,
 	ApiBidsChallenges,

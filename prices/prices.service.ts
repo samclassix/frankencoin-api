@@ -9,7 +9,7 @@ import {
 	PriceQueryObjectArray,
 } from './prices.types';
 import { PositionsService } from 'positions/positions.service';
-import { COINGECKO_CLIENT, VIEM_CHAIN } from 'app.config';
+import { COINGECKO_CLIENT, VIEM_CHAIN } from 'api.config';
 import { Address } from 'viem';
 import { ADDRESS } from 'contracts';
 import { EcosystemFpsService } from 'ecosystem/ecosystem.fps.service';
@@ -71,7 +71,7 @@ export class PricesService {
 		if (erc.address.toLowerCase() === ADDRESS[VIEM_CHAIN.id].equity.toLowerCase()) {
 			const priceInChf = this.fps.getEcosystemFpsInfo()?.values?.price;
 			const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
-			const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
+			const zchfPrice: number = this.fetchedPrices[zchfAddress]?.price?.usd;
 			if (!zchfPrice) return null;
 			return { usd: priceInChf * zchfPrice };
 		}

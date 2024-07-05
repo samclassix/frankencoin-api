@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core';
-import { CONFIG, CONFIG_PROFILE, PONDER_CLIENT } from 'app.config';
+import { CONFIG, CONFIG_PROFILE, PONDER_CLIENT } from 'api.config';
 import {
 	ServiceEcosystemFrankencoin,
 	ServiceEcosystemMintBurnMapping,
