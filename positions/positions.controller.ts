@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { PositionsService } from './positions.service';
-import { ApiPositionsListing, ApiPositionsOwners } from './positions.types';
+import { ApiPositionsListing, ApiPositionsMapping, ApiPositionsOwners } from './positions.types';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Positions Controller')
@@ -16,25 +16,33 @@ export class PositionsController {
 		return this.positionsService.getPositionsList();
 	}
 
+	@Get('mapping')
+	@ApiResponse({
+		description: 'Returns a mapping of all positions',
+	})
+	getMapping(): ApiPositionsMapping {
+		return this.positionsService.getPositionsMapping();
+	}
+
 	@Get('open')
 	@ApiResponse({
-		description: 'Returns a filtered list of open positions',
+		description: 'Returns a filtered mapping of open positions',
 	})
-	getOpen(): ApiPositionsListing {
+	getOpen(): ApiPositionsMapping {
 		return this.positionsService.getPositionsOpen();
 	}
 
 	@Get('requests')
 	@ApiResponse({
-		description: 'Returns a filtered list of requested positions (default: less then 5 days old)',
+		description: 'Returns a filtered mapping of requested positions (default: less then 5 days old)',
 	})
-	getRequestPositions(): ApiPositionsListing {
+	getRequestPositions(): ApiPositionsMapping {
 		return this.positionsService.getPositionsRequests();
 	}
 
 	@Get('owners')
 	@ApiResponse({
-		description: 'Returns a map of positions mapped by owner',
+		description: 'Returns a mapping of positions mapped by owner',
 	})
 	getOwners(): ApiPositionsOwners {
 		return this.positionsService.getPositionsOwners();

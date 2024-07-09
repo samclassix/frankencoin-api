@@ -32,6 +32,7 @@ export class ApiService {
 			this.fps.updateFpsInfo(),
 			this.challenges.updateChallenges(),
 			this.challenges.updateBids(),
+			this.challenges.updateChallengesPrices(),
 		];
 
 		return Promise.all(promises);

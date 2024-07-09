@@ -3,6 +3,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EcosystemCollateralService } from './ecosystem.collateral.service';
 import {
 	ApiEcosystemCollateralList,
+	ApiEcosystemCollateralListArray,
 	ApiEcosystemCollateralPositions,
 	ApiEcosystemCollateralPositionsDetails,
 	ApiEcosystemCollateralStats,
@@ -17,8 +18,16 @@ export class EcosystemCollateralController {
 	@ApiResponse({
 		description: 'Returns a list of ERC20 information about collateral token',
 	})
-	getCollateralList(): ApiEcosystemCollateralList {
+	getCollateralListArray(): ApiEcosystemCollateralListArray {
 		return this.collateral.getCollateralList();
+	}
+
+	@Get('mapping')
+	@ApiResponse({
+		description: 'Returns a mapping of ERC20 information about collateral token',
+	})
+	getCollateralMapping(): ApiEcosystemCollateralList {
+		return this.collateral.getCollateralMapping();
 	}
 
 	@Get('positions')

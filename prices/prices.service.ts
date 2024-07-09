@@ -3,6 +3,7 @@ import {
 	ApiPriceERC20,
 	ApiPriceERC20Mapping,
 	ApiPriceListing,
+	ApiPriceMapping,
 	ERC20Info,
 	ERC20InfoObjectArray,
 	PriceQueryCurrencies,
@@ -27,6 +28,10 @@ export class PricesService {
 	) {}
 
 	getPrices(): ApiPriceListing {
+		return Object.values(this.fetchedPrices);
+	}
+
+	getPricesMapping(): ApiPriceMapping {
 		return this.fetchedPrices;
 	}
 

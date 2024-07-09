@@ -3,6 +3,7 @@ import { PositionsService } from 'positions/positions.service';
 import { PricesService } from 'prices/prices.service';
 import {
 	ApiEcosystemCollateralList,
+	ApiEcosystemCollateralListArray,
 	ApiEcosystemCollateralPositions,
 	ApiEcosystemCollateralPositionsDetails,
 	ApiEcosystemCollateralStats,
@@ -11,7 +12,7 @@ import {
 import { PositionQuery } from 'positions/positions.types';
 import { Address } from 'viem';
 import { FIVEDAYS_MS } from 'utils/const-helper';
-import { PriceQueryCurrencies } from 'prices/prices.types';
+import { ERC20Info, PriceQueryCurrencies } from 'prices/prices.types';
 
 @Injectable()
 export class EcosystemCollateralService {
@@ -22,11 +23,20 @@ export class EcosystemCollateralService {
 		private readonly pricesService: PricesService
 	) {}
 
-	getCollateralList(): ApiEcosystemCollateralList {
+	getCollateralList(): ApiEcosystemCollateralListArray {
 		const c = this.pricesService.getCollateral();
 		return {
 			num: Object.keys(c).length,
-			list: c,
+			list: Object.values(c) as ERC20Info[],
+		};
+	}
+
+	getCollateralMapping(): ApiEcosystemCollateralList {
+		const c = this.pricesService.getCollateral();
+		return {
+			num: Object.keys(c).length,
+			addresses: Object.keys(c) as Address[],
+			map: c,
 		};
 	}
 

@@ -1,38 +1,58 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core';
-import { PONDER_CLIENT } from 'api.config';
+import { PONDER_CLIENT, VIEM_CONFIG } from 'api.config';
 import {
 	ApiBidsBidders,
 	ApiBidsChallenges,
 	ApiBidsListing,
+	ApiBidsListingArray,
 	ApiBidsPositions,
 	ApiChallengesChallengers,
 	ApiChallengesListing,
+	ApiChallengesListingArray,
 	ApiChallengesPositions,
+	ApiChallengesPrices,
 	BidsBidderMapping,
 	BidsChallengesMapping,
+	BidsId,
 	BidsPositionsMapping,
 	BidsQueryItem,
 	BidsQueryItemMapping,
 	ChallengesChallengersMapping,
+	ChallengesId,
 	ChallengesPositionsMapping,
+	ChallengesPricesMapping,
 	ChallengesQueryItem,
 	ChallengesQueryItemMapping,
+	ChallengesQueryStatus,
 } from './challenges.types';
 import { Address } from 'viem';
+import { MintingHubABI } from 'contracts/abis/MintingHub';
+import { ADDRESS } from 'contracts';
 
 @Injectable()
 export class ChallengesService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedChallenges: ChallengesQueryItemMapping = {};
 	private fetchedBids: BidsQueryItemMapping = {};
+	private fetchedChallengesArray: ChallengesQueryItem[] = [];
+	private fetchedBidsArray: BidsQueryItem[] = [];
+	private fetchedPrices: ChallengesPricesMapping = {};
 
 	constructor() {}
+
+	getChallengesArray(): ApiChallengesListingArray {
+		return {
+			num: this.fetchedChallengesArray.length,
+			list: this.fetchedChallengesArray,
+		};
+	}
 
 	getChallenges(): ApiChallengesListing {
 		return {
 			num: Object.keys(this.fetchedChallenges).length,
-			list: this.fetchedChallenges,
+			challenges: Object.keys(this.fetchedChallenges) as ChallengesId[],
+			map: this.fetchedChallenges,
 		};
 	}
 
@@ -68,10 +88,31 @@ export class ChallengesService {
 		};
 	}
 
+	// challenges prices
+	getChallengesPrices(): ApiChallengesPrices {
+		const pr = this.fetchedPrices;
+		return {
+			num: Object.keys(pr).length,
+			ids: Object.keys(pr) as ChallengesId[],
+			map: pr,
+		};
+	}
+
+	// --------------------------------------------------------------------------
+	// --------------------------------------------------------------------------
+	// --------------------------------------------------------------------------
+	getBidsArray(): ApiBidsListingArray {
+		return {
+			num: this.fetchedBidsArray.length,
+			list: this.fetchedBidsArray,
+		};
+	}
+
 	getBids(): ApiBidsListing {
 		return {
 			num: Object.keys(this.fetchedBids).length,
-			list: this.fetchedBids,
+			bidIds: Object.keys(this.fetchedBids) as BidsId[],
+			map: this.fetchedBids,
 		};
 	}
 
@@ -92,7 +133,7 @@ export class ChallengesService {
 		};
 	}
 
-	// bids/mapping
+	// bids/challenges
 	getBidsChallengesMapping(): ApiBidsChallenges {
 		const challengesMapping: BidsChallengesMapping = {};
 		for (const bid of Object.values(this.fetchedBids)) {
@@ -128,6 +169,34 @@ export class ChallengesService {
 		};
 	}
 
+	// --------------------------------------------------------------------------
+	// --------------------------------------------------------------------------
+	// --------------------------------------------------------------------------
+	async updateChallengesPrices() {
+		this.logger.debug('Updating challengesPrices');
+		const active = Object.values(this.getChallenges().map).filter(
+			(c: ChallengesQueryItem) => c.status === ChallengesQueryStatus.Active
+		);
+
+		// mapping active challenge -> prices
+		const challengesPrices: ChallengesPricesMapping = {};
+		const mh: Address = ADDRESS[VIEM_CONFIG.chain.id].mintingHub;
+		for (const c of active) {
+			const price = await VIEM_CONFIG.readContract({
+				abi: MintingHubABI,
+				address: mh,
+				functionName: 'price',
+				args: [parseInt(c.number.toString())],
+			});
+
+			challengesPrices[c.id] = price.toString();
+		}
+
+		// upsert
+		this.fetchedPrices = { ...this.fetchedPrices, ...challengesPrices };
+	}
+
+	// --------------------------------------------------------------------------
 	async updateChallenges() {
 		this.logger.debug('Updating challenges');
 		const challenges = await PONDER_CLIENT.query({
@@ -144,6 +213,7 @@ export class ChallengesService {
 							created
 							duration
 							size
+							liqPrice
 							bids
 							filledSize
 							acquiredCollateral
@@ -160,9 +230,9 @@ export class ChallengesService {
 		}
 
 		// mapping
-		const challengesQueryItems = challenges.data.challenges.items as ChallengesQueryItem[];
+		this.fetchedChallengesArray = challenges.data.challenges.items as ChallengesQueryItem[];
 		const mapped: ChallengesQueryItemMapping = {};
-		for (const i of challengesQueryItems) {
+		for (const i of this.fetchedChallengesArray) {
 			mapped[i.id] = i;
 		}
 
@@ -170,6 +240,7 @@ export class ChallengesService {
 		this.fetchedChallenges = { ...this.fetchedChallenges, ...mapped };
 	}
 
+	// --------------------------------------------------------------------------
 	async updateBids() {
 		this.logger.debug('Updating bids');
 		const bids = await PONDER_CLIENT.query({
@@ -201,9 +272,9 @@ export class ChallengesService {
 		}
 
 		// mapping
-		const bidsQueryItems = bids.data.challengeBids.items as BidsQueryItem[];
+		this.fetchedBidsArray = bids.data.challengeBids.items as BidsQueryItem[];
 		const mapped: BidsQueryItemMapping = {};
-		for (const i of bidsQueryItems) {
+		for (const i of this.fetchedBidsArray) {
 			mapped[i.id] = i;
 		}
 

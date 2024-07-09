@@ -38,9 +38,15 @@ export type ApiEcosystemCollateralStatsItem = ERC20Info & {
 
 // --------------------------------------------------------------------------
 // Api
+export type ApiEcosystemCollateralListArray = {
+	num: number;
+	list: ERC20Info[];
+};
+
 export type ApiEcosystemCollateralList = {
 	num: number;
-	list: ERC20InfoObjectArray;
+	addresses: Address[];
+	map: ERC20InfoObjectArray;
 };
 
 export type ApiEcosystemCollateralPositions = {

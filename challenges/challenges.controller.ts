@@ -5,10 +5,13 @@ import {
 	ApiBidsBidders,
 	ApiBidsChallenges,
 	ApiBidsListing,
+	ApiBidsListingArray,
 	ApiBidsPositions,
 	ApiChallengesChallengers,
 	ApiChallengesListing,
+	ApiChallengesListingArray,
 	ApiChallengesPositions,
+	ApiChallengesPrices,
 } from './challenges.types';
 
 @ApiTags('Challenges Controller')
@@ -17,6 +20,14 @@ export class ChallengesController {
 	constructor(private readonly challengesService: ChallengesService) {}
 
 	@Get('list')
+	@ApiResponse({
+		description: 'Returns a list of all challenges sorted by created timestamp.',
+	})
+	getChallengesListArray(): ApiChallengesListingArray {
+		return this.challengesService.getChallengesArray();
+	}
+
+	@Get('mapping')
 	@ApiResponse({
 		description: 'Returns a mapped list (challengeId -> challenge) of all challenges.',
 	})
@@ -40,11 +51,27 @@ export class ChallengesController {
 		return this.challengesService.getChallengesPositions();
 	}
 
+	@Get('prices')
+	@ApiResponse({
+		description: 'Returns a mapped list (challenge -> active auctionPrice) for all active challenges.',
+	})
+	getAuctionActivePrices(): ApiChallengesPrices {
+		return this.challengesService.getChallengesPrices();
+	}
+
 	@Get('bids/list')
 	@ApiResponse({
 		description: '',
 	})
-	getChallengesBidsListing(): ApiBidsListing {
+	getChallengesBidsListing(): ApiBidsListingArray {
+		return this.challengesService.getBidsArray();
+	}
+
+	@Get('bids/mapping')
+	@ApiResponse({
+		description: '',
+	})
+	getChallengesBids(): ApiBidsListing {
 		return this.challengesService.getBids();
 	}
 
@@ -56,7 +83,7 @@ export class ChallengesController {
 		return this.challengesService.getBidsBiddersMapping();
 	}
 
-	@Get('bids/mapping')
+	@Get('bids/challenges')
 	@ApiResponse({
 		description: '',
 	})

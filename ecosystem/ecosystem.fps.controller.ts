@@ -12,7 +12,7 @@ export class EcosystemFpsController {
 	@ApiResponse({
 		description: 'Returns info about the FPS token',
 	})
-	async getCollateralList(): Promise<ApiEcosystemFpsInfo> {
-		return await this.fps.getEcosystemFpsInfo();
+	getCollateralList(): ApiEcosystemFpsInfo {
+		return this.fps.getEcosystemFpsInfo();
 	}
 }

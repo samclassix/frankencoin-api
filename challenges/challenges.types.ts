@@ -12,11 +12,12 @@ export type ChallengesQueryItem = {
 	created: bigint;
 	duration: bigint;
 	size: bigint;
+	liqPrice: bigint;
 
 	bids: bigint;
 	filledSize: bigint;
 	acquiredCollateral: bigint;
-	status: string;
+	status: ChallengesStatus;
 };
 
 export type BidsQueryItem = {
@@ -28,17 +29,20 @@ export type BidsQueryItem = {
 	bidder: Address;
 	created: bigint;
 	bidType: BidsType;
-	bid: bigint;
+	price: bigint;
 
-	bids: bigint;
 	filledSize: bigint;
 	acquiredCollateral: bigint;
 	challengeSize: bigint;
 };
 
 // --------------------------------------------------------------------------
-// Service
-export type ChallengesStatus = 'Active' | 'Success';
+// Service Challenges
+export enum ChallengesQueryStatus {
+	Active = 'Active',
+	Success = 'Success',
+}
+export type ChallengesStatus = ChallengesQueryStatus;
 export type ChallengesId = `${Address}-challenge-${bigint}`;
 
 export type ChallengesQueryItemMapping = {
@@ -47,8 +51,14 @@ export type ChallengesQueryItemMapping = {
 
 export type ChallengesChallengersMapping = { [key: Address]: ChallengesQueryItem[] };
 export type ChallengesPositionsMapping = { [key: Address]: ChallengesQueryItem[] };
+export type ChallengesPricesMapping = { [key: ChallengesId]: string };
 
-export type BidsType = 'Averted' | 'Succeeded';
+// Service Bids
+export enum BidsQueryType {
+	Averted = 'Averted',
+	Succeeded = 'Succeeded',
+}
+export type BidsType = BidsQueryType;
 export type BidsId = `${Address}-challenge-${bigint}-bid-${bigint}`;
 
 export type BidsQueryItemMapping = {
@@ -60,10 +70,17 @@ export type BidsChallengesMapping = { [key: Address]: BidsQueryItem[] };
 export type BidsPositionsMapping = { [key: Address]: BidsQueryItem[] };
 
 // --------------------------------------------------------------------------
-// Api
+// Api Challenges
+
+export type ApiChallengesListingArray = {
+	num: number;
+	list: ChallengesQueryItem[];
+};
+
 export type ApiChallengesListing = {
 	num: number;
-	list: ChallengesQueryItemMapping;
+	challenges: ChallengesId[];
+	map: ChallengesQueryItemMapping;
 };
 
 export type ApiChallengesChallengers = {
@@ -78,9 +95,16 @@ export type ApiChallengesPositions = {
 	map: ChallengesPositionsMapping;
 };
 
+// Api Bids
+export type ApiBidsListingArray = {
+	num: number;
+	list: BidsQueryItem[];
+};
+
 export type ApiBidsListing = {
 	num: number;
-	list: BidsQueryItemMapping;
+	bidIds: BidsId[];
+	map: BidsQueryItemMapping;
 };
 
 export type ApiBidsBidders = {
@@ -99,4 +123,11 @@ export type ApiBidsPositions = {
 	num: number;
 	positions: Address[];
 	map: BidsPositionsMapping;
+};
+
+// Api ChallengePrices
+export type ApiChallengesPrices = {
+	num: number;
+	ids: ChallengesId[];
+	map: ChallengesPricesMapping;
 };
