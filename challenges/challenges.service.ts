@@ -5,11 +5,11 @@ import {
 	ApiBidsBidders,
 	ApiBidsChallenges,
 	ApiBidsListing,
-	ApiBidsListingArray,
+	ApiBidsMapping,
 	ApiBidsPositions,
 	ApiChallengesChallengers,
 	ApiChallengesListing,
-	ApiChallengesListingArray,
+	ApiChallengesMapping,
 	ApiChallengesPositions,
 	ApiChallengesPrices,
 	BidsBidderMapping,
@@ -33,26 +33,27 @@ import { ADDRESS } from 'contracts';
 @Injectable()
 export class ChallengesService {
 	private readonly logger = new Logger(this.constructor.name);
-	private fetchedChallenges: ChallengesQueryItemMapping = {};
-	private fetchedBids: BidsQueryItemMapping = {};
-	private fetchedChallengesArray: ChallengesQueryItem[] = [];
-	private fetchedBidsArray: BidsQueryItem[] = [];
+	private fetchedChallenges: ChallengesQueryItem[] = [];
+	private fetchedChallengesMapping: ChallengesQueryItemMapping = {};
+	private fetchedBids: BidsQueryItem[] = [];
+	private fetchedBidsMapping: BidsQueryItemMapping = {};
 	private fetchedPrices: ChallengesPricesMapping = {};
 
 	constructor() {}
 
-	getChallengesArray(): ApiChallengesListingArray {
+	getChallenges(): ApiChallengesListing {
 		return {
-			num: this.fetchedChallengesArray.length,
-			list: this.fetchedChallengesArray,
+			num: this.fetchedChallenges.length,
+			list: this.fetchedChallenges,
 		};
 	}
 
-	getChallenges(): ApiChallengesListing {
+	getChallengesMapping(): ApiChallengesMapping {
+		const c = this.fetchedChallengesMapping;
 		return {
-			num: Object.keys(this.fetchedChallenges).length,
-			challenges: Object.keys(this.fetchedChallenges) as ChallengesId[],
-			map: this.fetchedChallenges,
+			num: Object.keys(c).length,
+			challenges: Object.keys(c) as ChallengesId[],
+			map: c,
 		};
 	}
 
@@ -101,18 +102,19 @@ export class ChallengesService {
 	// --------------------------------------------------------------------------
 	// --------------------------------------------------------------------------
 	// --------------------------------------------------------------------------
-	getBidsArray(): ApiBidsListingArray {
+	getBids(): ApiBidsListing {
 		return {
-			num: this.fetchedBidsArray.length,
-			list: this.fetchedBidsArray,
+			num: this.fetchedBids.length,
+			list: this.fetchedBids,
 		};
 	}
 
-	getBids(): ApiBidsListing {
+	getBidsMapping(): ApiBidsMapping {
+		const b = this.fetchedBidsMapping;
 		return {
-			num: Object.keys(this.fetchedBids).length,
-			bidIds: Object.keys(this.fetchedBids) as BidsId[],
-			map: this.fetchedBids,
+			num: Object.keys(b).length,
+			bidIds: Object.keys(b) as BidsId[],
+			map: b,
 		};
 	}
 
@@ -174,9 +176,7 @@ export class ChallengesService {
 	// --------------------------------------------------------------------------
 	async updateChallengesPrices() {
 		this.logger.debug('Updating challengesPrices');
-		const active = Object.values(this.getChallenges().map).filter(
-			(c: ChallengesQueryItem) => c.status === ChallengesQueryStatus.Active
-		);
+		const active = this.getChallenges().list.filter((c: ChallengesQueryItem) => c.status === ChallengesQueryStatus.Active);
 
 		// mapping active challenge -> prices
 		const challengesPrices: ChallengesPricesMapping = {};
@@ -203,7 +203,7 @@ export class ChallengesService {
 			fetchPolicy: 'no-cache',
 			query: gql`
 				query {
-					challenges(orderBy: "created", orderDirection: "desc") {
+					challenges(orderBy: "status", orderDirection: "asc") {
 						items {
 							id
 							position
@@ -230,14 +230,14 @@ export class ChallengesService {
 		}
 
 		// mapping
-		this.fetchedChallengesArray = challenges.data.challenges.items as ChallengesQueryItem[];
+		this.fetchedChallenges = challenges.data.challenges.items as ChallengesQueryItem[];
 		const mapped: ChallengesQueryItemMapping = {};
-		for (const i of this.fetchedChallengesArray) {
+		for (const i of this.fetchedChallenges) {
 			mapped[i.id] = i;
 		}
 
 		// upsert
-		this.fetchedChallenges = { ...this.fetchedChallenges, ...mapped };
+		this.fetchedChallengesMapping = { ...this.fetchedChallengesMapping, ...mapped };
 	}
 
 	// --------------------------------------------------------------------------
@@ -272,13 +272,13 @@ export class ChallengesService {
 		}
 
 		// mapping
-		this.fetchedBidsArray = bids.data.challengeBids.items as BidsQueryItem[];
+		this.fetchedBids = bids.data.challengeBids.items as BidsQueryItem[];
 		const mapped: BidsQueryItemMapping = {};
-		for (const i of this.fetchedBidsArray) {
+		for (const i of this.fetchedBids) {
 			mapped[i.id] = i;
 		}
 
 		// upsert
-		this.fetchedBids = { ...this.fetchedBids, ...mapped };
+		this.fetchedBidsMapping = { ...this.fetchedBidsMapping, ...mapped };
 	}
 }

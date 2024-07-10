@@ -72,12 +72,12 @@ export type BidsPositionsMapping = { [key: Address]: BidsQueryItem[] };
 // --------------------------------------------------------------------------
 // Api Challenges
 
-export type ApiChallengesListingArray = {
+export type ApiChallengesListing = {
 	num: number;
 	list: ChallengesQueryItem[];
 };
 
-export type ApiChallengesListing = {
+export type ApiChallengesMapping = {
 	num: number;
 	challenges: ChallengesId[];
 	map: ChallengesQueryItemMapping;
@@ -96,12 +96,12 @@ export type ApiChallengesPositions = {
 };
 
 // Api Bids
-export type ApiBidsListingArray = {
+export type ApiBidsListing = {
 	num: number;
 	list: BidsQueryItem[];
 };
 
-export type ApiBidsListing = {
+export type ApiBidsMapping = {
 	num: number;
 	bidIds: BidsId[];
 	map: BidsQueryItemMapping;
