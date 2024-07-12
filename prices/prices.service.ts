@@ -3,16 +3,17 @@ import {
 	ApiPriceERC20,
 	ApiPriceERC20Mapping,
 	ApiPriceListing,
+	ApiPriceMapping,
 	ERC20Info,
 	ERC20InfoObjectArray,
 	PriceQueryCurrencies,
 	PriceQueryObjectArray,
 } from './prices.types';
 import { PositionsService } from 'positions/positions.service';
-import { COINGECKO_CLIENT, VIEM_CHAIN, VIEM_CONFIG } from 'app.config';
+import { COINGECKO_CLIENT, VIEM_CHAIN } from 'api.config';
 import { Address } from 'viem';
-import { EquityABI } from 'contracts/abis/Equity';
 import { ADDRESS } from 'contracts';
+import { EcosystemFpsService } from 'ecosystem/ecosystem.fps.service';
 
 const randRef: number = Math.random() * 0.4 + 0.8;
 
@@ -21,9 +22,16 @@ export class PricesService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedPrices: PriceQueryObjectArray = {};
 
-	constructor(private readonly positionsService: PositionsService) {}
+	constructor(
+		private readonly positionsService: PositionsService,
+		private readonly fps: EcosystemFpsService
+	) {}
 
 	getPrices(): ApiPriceListing {
+		return Object.values(this.fetchedPrices);
+	}
+
+	getPricesMapping(): ApiPriceMapping {
 		return this.fetchedPrices;
 	}
 
@@ -66,16 +74,11 @@ export class PricesService {
 	async fetchSourcesCoingecko(erc: ERC20Info): Promise<PriceQueryCurrencies | null> {
 		// override for Frankencoin Pool Share
 		if (erc.address.toLowerCase() === ADDRESS[VIEM_CHAIN.id].equity.toLowerCase()) {
-			const fetchedPrice = await VIEM_CONFIG.readContract({
-				address: erc.address,
-				abi: EquityABI,
-				functionName: 'price',
-			});
-			const price = Math.round((parseInt(fetchedPrice.toString()) / 10 ** erc.decimals) * 100) / 100;
+			const priceInChf = this.fps.getEcosystemFpsInfo()?.values?.price;
 			const zchfAddress = ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase();
-			const zchfPrice = this.fetchedPrices[zchfAddress]?.price?.usd;
+			const zchfPrice: number = this.fetchedPrices[zchfAddress]?.price?.usd;
 			if (!zchfPrice) return null;
-			return { usd: price * zchfPrice };
+			return { usd: priceInChf * zchfPrice };
 		}
 
 		// all other mainnet addresses
@@ -124,8 +127,11 @@ export class PricesService {
 		let pricesQueryUpdateCount: number = 0;
 		let pricesQueryUpdateCountFailed: number = 0;
 
+		const zchfPrice: number = this.fetchedPrices[ADDRESS[VIEM_CHAIN.id].frankenCoin.toLowerCase()]?.price?.usd;
+
 		for (const erc of a) {
-			const oldEntry = this.fetchedPrices[erc.address.toLowerCase() as Address];
+			const addr = erc.address.toLowerCase() as Address;
+			const oldEntry = this.fetchedPrices[addr];
 
 			if (!oldEntry) {
 				pricesQueryNewCount += 1;
@@ -133,11 +139,12 @@ export class PricesService {
 				const price = await this.fetchSourcesCoingecko(erc);
 				if (!price) pricesQueryNewCountFailed += 1;
 
-				pricesQuery[erc.address.toLowerCase() as Address] = {
+				pricesQuery[addr] = {
 					...erc,
 					timestamp: price === null ? 0 : Date.now(),
 					price: price === null ? { usd: 1 } : price,
 				};
+
 				continue;
 			}
 
@@ -149,14 +156,21 @@ export class PricesService {
 
 				if (!price) {
 					pricesQueryUpdateCountFailed += 1;
-					continue;
+				} else {
+					pricesQuery[addr] = {
+						...erc,
+						timestamp: Date.now(),
+						price,
+					};
 				}
+			}
 
-				pricesQuery[erc.address.toLowerCase() as Address] = {
-					...erc,
-					timestamp: Date.now(),
-					price,
-				};
+			if (zchfPrice) {
+				const priceUsd = this.fetchedPrices[addr]?.price?.usd;
+				if (priceUsd) {
+					const priceChf = Math.round((priceUsd / zchfPrice) * 100) / 100;
+					this.fetchedPrices[addr].price.chf = priceChf;
+				}
 			}
 		}
 

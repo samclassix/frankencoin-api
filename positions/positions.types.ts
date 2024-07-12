@@ -53,7 +53,13 @@ export type OwnersPositionsObjectArray = {
 // Api
 export type ApiPositionsListing = {
 	num: number;
-	list: PositionsQueryObjectArray;
+	list: PositionQuery[];
+};
+
+export type ApiPositionsMapping = {
+	num: number;
+	addresses: Address[];
+	map: PositionsQueryObjectArray;
 };
 
 export type ApiPositionsOwners = {

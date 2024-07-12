@@ -7,6 +7,8 @@ dotenv.config();
 
 // CONFIG
 export const CONFIG_PROFILE = process.env.CONFIG_PROFILE || 'mainnet'; // <<<<<< SELECT DEFAULT CONFIG HERE <<<<<<
+console.log(`Starting API with Profile: ${CONFIG_PROFILE}...`);
+
 export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Chain } } = {
 	localhost: {
 		indexer: 'http://localhost:42069',

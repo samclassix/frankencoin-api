@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import { VIEM_CONFIG } from 'app.config';
+import { VIEM_CONFIG } from 'api.config';
 import { ChallengesService } from 'challenges/challenges.service';
 import { EcosystemFpsService } from 'ecosystem/ecosystem.fps.service';
 import { EcosystemFrankencoinService } from 'ecosystem/ecosystem.frankencoin.service';
@@ -8,7 +8,7 @@ import { PositionsService } from 'positions/positions.service';
 import { PricesService } from 'prices/prices.service';
 
 @Injectable()
-export class AppService {
+export class ApiService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedBlockheight: number = 0;
 
@@ -32,6 +32,7 @@ export class AppService {
 			this.fps.updateFpsInfo(),
 			this.challenges.updateChallenges(),
 			this.challenges.updateBids(),
+			this.challenges.updateChallengesPrices(),
 		];
 
 		return Promise.all(promises);

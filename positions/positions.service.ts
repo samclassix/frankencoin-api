@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PONDER_CLIENT, VIEM_CONFIG } from '../app.config';
+import { PONDER_CLIENT, VIEM_CONFIG } from '../api.config';
 import { gql } from '@apollo/client/core';
 import {
 	ApiPositionsListing,
+	ApiPositionsMapping,
 	ApiPositionsOwners,
 	OwnersPositionsObjectArray,
 	PositionQuery,
@@ -19,29 +20,37 @@ export class PositionsService {
 	constructor() {}
 
 	getPositionsList(): ApiPositionsListing {
-		const pos = this.fetchedPositions;
-		return { num: Object.keys(pos).length, list: pos };
+		const pos = Object.values(this.fetchedPositions) as PositionQuery[];
+		return {
+			num: pos.length,
+			list: pos,
+		};
 	}
 
-	getPositionsOpen(): ApiPositionsListing {
+	getPositionsMapping(): ApiPositionsMapping {
 		const pos = this.fetchedPositions;
-		const open = Object.values(pos).filter((p) => !p.closed && !p.denied);
+		return { num: Object.keys(pos).length, addresses: Object.keys(pos) as Address[], map: pos };
+	}
+
+	getPositionsOpen(): ApiPositionsMapping {
+		const pos = this.getPositionsList().list;
+		const open = pos.filter((p) => !p.closed && !p.denied);
 		const mapped: PositionsQueryObjectArray = {};
 		for (const p of open) {
 			mapped[p.position] = p;
 		}
-		return { num: Object.keys(mapped).length, list: mapped };
+		return { num: Object.keys(mapped).length, addresses: Object.keys(mapped) as Address[], map: mapped };
 	}
 
-	getPositionsRequests(): ApiPositionsListing {
+	getPositionsRequests(): ApiPositionsMapping {
+		const pos = this.getPositionsList().list;
 		// FIXME: make time diff flexable, changeable between chains/SC
-		const pos = this.fetchedPositions;
-		const request = Object.values(pos).filter((p) => p.start * 1000 + FIVEDAYS_MS > Date.now());
+		const request = pos.filter((p) => p.start * 1000 + FIVEDAYS_MS > Date.now());
 		const mapped: PositionsQueryObjectArray = {};
 		for (const p of request) {
 			mapped[p.position] = p;
 		}
-		return { num: Object.keys(mapped).length, list: mapped };
+		return { num: Object.keys(mapped).length, addresses: Object.keys(mapped) as Address[], map: mapped };
 	}
 
 	getPositionsOwners(): ApiPositionsOwners {

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core';
-import { CONFIG, CONFIG_PROFILE, PONDER_CLIENT } from 'app.config';
+import { CONFIG, CONFIG_PROFILE, PONDER_CLIENT } from 'api.config';
 import {
 	ServiceEcosystemFrankencoin,
 	ServiceEcosystemMintBurnMapping,
@@ -19,10 +19,7 @@ export class EcosystemFrankencoinService {
 	private ecosystemFrankencoin: ServiceEcosystemFrankencoin;
 	private ecosystemMintBurnMapping: ServiceEcosystemMintBurnMapping = {};
 
-	constructor(private readonly pricesService: PricesService) {
-		setTimeout(() => this.updateEcosystemKeyValues(), 100);
-		setTimeout(() => this.updateEcosystemMintBurnMapping(), 100);
-	}
+	constructor(private readonly pricesService: PricesService) {}
 
 	getEcosystemFrankencoinInfo(): ApiEcosystemFrankencoinInfo {
 		return {

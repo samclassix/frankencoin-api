@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ApiPriceERC20, ApiPriceERC20Mapping, ApiPriceListing } from 'prices/prices.types';
+import { ApiPriceERC20, ApiPriceERC20Mapping, ApiPriceListing, ApiPriceMapping } from 'prices/prices.types';
 import { PricesService } from './prices.service';
 
 @ApiTags('Prices Controller')
@@ -14,6 +14,14 @@ export class PricesController {
 	})
 	getList(): ApiPriceListing {
 		return this.pricesService.getPrices();
+	}
+
+	@Get('mapping')
+	@ApiResponse({
+		description: 'Returns a mapping of price queries',
+	})
+	getListMapping(): ApiPriceMapping {
+		return this.pricesService.getPricesMapping();
 	}
 
 	@Get('erc20/mint')
