@@ -12,7 +12,6 @@ console.log(`Starting API with Profile: ${CONFIG_PROFILE}...`);
 export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Chain } } = {
 	localhost: {
 		indexer: 'http://localhost:42069',
-		// rpc: ethereum3.rpcUrls.default.http[0],
 		rpc: process.env.RPC_URL_POLYGON,
 		chain: polygon,
 	},
@@ -26,10 +25,15 @@ export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Cha
 		rpc: process.env.RPC_URL_MAINNET,
 		chain: mainnet,
 	},
-	developer: {
-		indexer: 'https://ponder.frankencoin.3dotshub.com',
+	mainnetTest: {
+		indexer: 'https://ponder.test.frankencoin.com',
 		rpc: process.env.RPC_URL_MAINNET,
 		chain: mainnet,
+	},
+	polygonTest: {
+		indexer: 'https://ponder.test.frankencoin.com',
+		rpc: process.env.RPC_URL_POLYGON,
+		chain: polygon,
 	},
 	frankencoinOrganizationTestnet: {
 		indexer: 'https://ponder.frankencoin.org',
