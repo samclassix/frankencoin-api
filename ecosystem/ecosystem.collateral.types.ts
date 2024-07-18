@@ -1,5 +1,5 @@
-import { PositionQuery } from 'positions/positions.types';
-import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies } from 'prices/prices.types';
+import { PositionQuery } from './../positions/positions.types';
+import { ERC20Info, ERC20InfoObjectArray, PriceQueryCurrencies } from './../prices/prices.types';
 import { Address } from 'viem';
 
 // --------------------------------------------------------------------------
