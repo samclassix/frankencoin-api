@@ -92,7 +92,7 @@ export class PositionsService {
 							annualInterestPPM
 							reserveContribution
 							start
-
+							cooldown
 							expiration
 							challengePeriod
 

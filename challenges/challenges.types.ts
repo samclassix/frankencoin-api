@@ -29,6 +29,7 @@ export type BidsQueryItem = {
 	bidder: Address;
 	created: bigint;
 	bidType: BidsType;
+	bid: bigint;
 	price: bigint;
 
 	filledSize: bigint;

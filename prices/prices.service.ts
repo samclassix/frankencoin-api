@@ -107,6 +107,8 @@ export class PricesService {
 			if (erc.symbol === 'SUP') price = { usd: calc(12453) };
 			if (erc.symbol === 'BOSS') price = { usd: calc(11.54) };
 			if (erc.symbol === 'BEES') price = { usd: calc(16) };
+			if (erc.symbol === 'CRV') price = { usd: calc(500) };
+			if (erc.symbol === 'FLOKI') price = { usd: calc(1400) };
 			return price;
 		}
 	}

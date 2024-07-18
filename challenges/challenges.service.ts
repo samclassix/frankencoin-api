@@ -256,6 +256,7 @@ export class ChallengesService {
 							bidder
 							created
 							bidType
+							bid
 							price
 							filledSize
 							acquiredCollateral
