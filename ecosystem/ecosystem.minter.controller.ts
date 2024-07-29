@@ -5,12 +5,12 @@ import { ApiMinterListing, ApiMinterMapping } from './ecosystem.minter.types';
 
 @ApiTags('Ecosystem Controller')
 @Controller('ecosystem/frankencoin/minter')
-export class PositionsController {
+export class EcosystemMinterController {
 	constructor(private readonly minter: EcosystemMinterService) {}
 
 	@Get('list')
 	@ApiResponse({
-		description: 'Returns a list of all positions',
+		description: 'Returns a list of all minter proposals',
 	})
 	getList(): ApiMinterListing {
 		return this.minter.getMintersList();
@@ -18,7 +18,7 @@ export class PositionsController {
 
 	@Get('mapping')
 	@ApiResponse({
-		description: 'Returns a mapping of all positions',
+		description: 'Returns a mapping of all minter proposals',
 	})
 	getMapping(): ApiMinterMapping {
 		return this.minter.getMintersMapping();

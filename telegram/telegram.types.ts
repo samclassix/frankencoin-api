@@ -4,3 +4,10 @@ export type TelegramState = {
 	challenges: number;
 	bids: number;
 };
+
+export type TelegramGroupState = {
+	apiVersion: string;
+	createdAt: number;
+	updatedAt: number;
+	groups: string[];
+};

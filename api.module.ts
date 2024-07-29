@@ -15,12 +15,14 @@ import { ChallengesService } from 'challenges/challenges.service';
 import { TelegramService } from 'telegram/telegram.service';
 
 // CONTROLLER IMPORTS
+import { EcosystemMinterController } from 'ecosystem/ecosystem.minter.controller';
 import { EcosystemCollateralController } from 'ecosystem/ecosystem.collateral.controller';
 import { EcosystemFpsController } from 'ecosystem/ecosystem.fps.controller';
 import { EcosystemFrankencoinController } from 'ecosystem/ecosystem.frankencoin.controller';
 import { PositionsController } from 'positions/positions.controller';
 import { PricesController } from 'prices/prices.controller';
 import { ChallengesController } from 'challenges/challenges.controller';
+import { Storj } from 'storj/storj.s3.service';
 
 // APP MODULE
 @Module({
@@ -29,12 +31,13 @@ import { ChallengesController } from 'challenges/challenges.controller';
 		EcosystemCollateralController,
 		EcosystemFpsController,
 		EcosystemFrankencoinController,
+		EcosystemMinterController,
 		PositionsController,
 		PricesController,
 		ChallengesController,
 	],
 	providers: [
-		ApiService,
+		Storj,
 		EcosystemMinterService,
 		EcosystemCollateralService,
 		EcosystemFpsService,
@@ -43,6 +46,7 @@ import { ChallengesController } from 'challenges/challenges.controller';
 		PricesService,
 		ChallengesService,
 		TelegramService,
+		ApiService,
 	],
 })
 export class AppModule {}
