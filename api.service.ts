@@ -4,8 +4,10 @@ import { VIEM_CONFIG } from 'api.config';
 import { ChallengesService } from 'challenges/challenges.service';
 import { EcosystemFpsService } from 'ecosystem/ecosystem.fps.service';
 import { EcosystemFrankencoinService } from 'ecosystem/ecosystem.frankencoin.service';
+import { EcosystemMinterService } from 'ecosystem/ecosystem.minter.service';
 import { PositionsService } from 'positions/positions.service';
 import { PricesService } from 'prices/prices.service';
+import { TelegramService } from 'telegram/telegram.service';
 
 @Injectable()
 export class ApiService {
@@ -13,11 +15,13 @@ export class ApiService {
 	private fetchedBlockheight: number = 0;
 
 	constructor(
+		private readonly minter: EcosystemMinterService,
 		private readonly positions: PositionsService,
 		private readonly prices: PricesService,
 		private readonly frankencoin: EcosystemFrankencoinService,
 		private readonly fps: EcosystemFpsService,
-		private readonly challenges: ChallengesService
+		private readonly challenges: ChallengesService,
+		private readonly telegram: TelegramService
 	) {
 		setTimeout(() => this.updateBlockheight(), 100);
 	}
@@ -25,6 +29,7 @@ export class ApiService {
 	async updateWorkflow() {
 		this.logger.log(`Fetched blockheight: ${this.fetchedBlockheight}`);
 		const promises = [
+			this.minter.updateMinters(),
 			this.positions.updatePositons(),
 			this.prices.updatePrices(),
 			this.frankencoin.updateEcosystemKeyValues(),
@@ -33,6 +38,7 @@ export class ApiService {
 			this.challenges.updateChallenges(),
 			this.challenges.updateBids(),
 			this.challenges.updateChallengesPrices(),
+			this.telegram.updateTelegram(),
 		];
 
 		return Promise.all(promises);

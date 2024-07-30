@@ -3,15 +3,6 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EcosystemFrankencoinService } from './ecosystem.frankencoin.service';
 import { ApiEcosystemFrankencoinInfo, ApiEcosystemMintBurnMapping } from './ecosystem.frankencoin.types';
 
-/**
- * 
- * {
-  "totalSupplyZchf": 9151881.025188236,
-  "totalValueLockedInChf": 15931372.86543195,
-  "fpsMarketCapInChf": 11486515.603335824
-}
- */
-
 @ApiTags('Ecosystem Controller')
 @Controller('ecosystem/frankencoin')
 export class EcosystemFrankencoinController {

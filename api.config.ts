@@ -30,6 +30,11 @@ export const CONFIG: { [key: string]: { indexer: string; rpc: string; chain: Cha
 		rpc: process.env.RPC_URL_MAINNET,
 		chain: mainnet,
 	},
+	mainnetTestPolygon: {
+		indexer: 'https://ponder.test.frankencoin.com',
+		rpc: process.env.RPC_URL_POLYGON,
+		chain: polygon,
+	},
 	polygonTest: {
 		indexer: 'https://ponder.test.frankencoin.com',
 		rpc: process.env.RPC_URL_POLYGON,
