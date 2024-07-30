@@ -8,6 +8,9 @@ import { PositionProposalMessage } from './messages/PositionProposal.message';
 import { Storj } from 'storj/storj.s3.service';
 import { Groups } from './dtos/groups.dto';
 import { WelcomeGroupMessage } from './messages/WelcomeGroup.message';
+import { StartUpMessage } from './messages/StartUp.message';
+import { ChallengesService } from 'challenges/challenges.service';
+import { ChallengeStartedMessage } from './messages/ChallengeStarted.message';
 
 @Injectable()
 export class TelegramService {
@@ -20,7 +23,8 @@ export class TelegramService {
 	constructor(
 		private readonly storj: Storj,
 		private readonly minter: EcosystemMinterService,
-		private readonly position: PositionsService
+		private readonly position: PositionsService,
+		private readonly challenge: ChallengesService
 	) {
 		const time: number = Date.now();
 		this.telegramState = {
@@ -51,6 +55,8 @@ export class TelegramService {
 			this.logger.log(`Telegram group state created...`);
 		} else {
 			this.telegramGroupState = response.data;
+			this.logger.log(`Telegram group state restored...`);
+			this.sendMessageAll(StartUpMessage());
 		}
 	}
 
@@ -70,7 +76,7 @@ export class TelegramService {
 	}
 
 	async sendMessageAll(message: string) {
-		if ((this.telegramGroupState.groups.length = 0)) return;
+		if (this.telegramGroupState.groups.length == 0) return;
 		for (const group of this.telegramGroupState.groups) {
 			await this.sendMessage(group, message);
 		}
@@ -93,7 +99,7 @@ export class TelegramService {
 		const updatedState: boolean[] = [];
 		if (telegramUpdates.length > 0) {
 			for (const up of telegramUpdates) {
-				if (this.upsertTelegramGroup(up.message.chat.id) == true) updatedState.push(true);
+				if (this.upsertTelegramGroup(up?.message?.chat?.id) == true) updatedState.push(true);
 			}
 			if (updatedState.length > 0) await this.writeBackupGroups();
 		}
@@ -121,12 +127,22 @@ export class TelegramService {
 			this.telegramState.positions = Date.now();
 		}
 
-		// this.storj.read('/telegram.groupids.json');
 		// update challenges
-		// update bids
+		const requestedChallenges = Object.values(this.challenge.getChallengesMapping().map).filter(
+			(c) => parseInt(c.created.toString()) * 1000 > this.telegramState.challenges
+		);
+		if (requestedChallenges.length > 0) {
+			for (const c of requestedChallenges) {
+				const pos = this.position.getPositionsList().list.find((p) => p.position == c.position);
+				if (pos == undefined) return;
+				this.sendMessageAll(ChallengeStartedMessage(pos, c));
+			}
+			this.telegramState.challenges = Date.now();
+		}
 	}
 
 	upsertTelegramGroup(id: number): boolean {
+		if (!id) return;
 		if (this.telegramGroupState.groups.includes(id.toString())) return false;
 		this.telegramGroupState.groups.push(id.toString());
 		this.logger.log(`Upserted Telegram Group: ${id}`);

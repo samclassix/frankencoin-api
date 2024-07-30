@@ -1,5 +1,6 @@
 import { PositionQuery } from 'positions/positions.types';
 import { formatCurrency } from 'utils/format';
+import { AppUrl, ExplorerAddressUrl } from 'utils/func-helper';
 import { formatUnits } from 'viem';
 
 export function PositionProposalMessage(position: PositionQuery): string {
@@ -9,7 +10,8 @@ export function PositionProposalMessage(position: PositionQuery): string {
 
 	return `
 *New Position Proposal*
-Start: ${new Date(position.start * 1000).toString().split(' ').splice(0, 6).join(' ')}
+
+Start: ${new Date(position.start * 1000).toString().split(' ').splice(0, 5).join(' ')}
 Position: ${position.position}
 Owner: ${position.owner}
 Minting Limit: ${formatCurrency(formatUnits(BigInt(position.limitForClones), 18), 2, 2)} ZCHF
@@ -24,11 +26,11 @@ Balance: ${formatCurrency(bal, 2, 2)} ${position.collateralSymbol}
 Bal. min.: ${formatCurrency(min, 2, 2)} ${position.collateralSymbol}
 Price: ${formatCurrency(price, 2, 2)} ZCHF
 
-[Challenge Position](https://app.test.frankencoin.com/monitoring/${position.position}/challenge)
-[Veto Position](https://app.test.frankencoin.com/monitoring/${position.position}/veto)
+[Challenge Position](${AppUrl(`/monitoring/${position.position}/challenge`)})
+[Veto Position](${AppUrl(`/monitoring/${position.position}/veto`)})
 
-[Explorer Position](https://polygonscan.com/address/${position.position})
-[Explorer Owner](https://polygonscan.com/address/${position.owner}) 
-[Explorer Collateral](https://polygonscan.com/address/${position.collateral}) 
+[Explorer Position](${ExplorerAddressUrl(position.position)})
+[Explorer Owner](${ExplorerAddressUrl(position.owner)}) 
+[Explorer Collateral]${ExplorerAddressUrl(position.collateral)}) 
                         `;
 }
