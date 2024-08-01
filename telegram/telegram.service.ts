@@ -87,6 +87,9 @@ export class TelegramService {
 			this.logger.debug(`Sending message to group id ${group}`);
 			await this.bot.sendMessage(group.toString(), message, { parse_mode: 'Markdown', disable_web_page_preview: true });
 		} catch (error) {
+			// FIXME: Error: ETELEGRAM: 403 Forbidden: the group chat was deleted
+			// FIXME: Error: ETELEGRAM: 403 Forbidden: bot was blocked by the user
+			// FIXME: Remove from groups. When to perform backup, speed efficient?
 			this.logger.error(error);
 		}
 	}
