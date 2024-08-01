@@ -31,6 +31,6 @@ Price: ${formatCurrency(price, 2, 2)} ZCHF
 
 [Explorer Position](${ExplorerAddressUrl(position.position)})
 [Explorer Owner](${ExplorerAddressUrl(position.owner)}) 
-[Explorer Collateral]${ExplorerAddressUrl(position.collateral)}) 
+[Explorer Collateral](${ExplorerAddressUrl(position.collateral)}) 
                         `;
 }
