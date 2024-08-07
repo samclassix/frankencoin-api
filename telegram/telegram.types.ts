@@ -10,4 +10,5 @@ export type TelegramGroupState = {
 	createdAt: number;
 	updatedAt: number;
 	groups: string[];
+	ignore: string[];
 };
