@@ -11,6 +11,7 @@ import {
 } from './positions.types';
 import { Address, erc20Abi, getAddress } from 'viem';
 import { FIVEDAYS_MS } from 'utils/const-helper';
+import { PositionABI } from 'contracts/abis/Position';
 
 @Injectable()
 export class PositionsService {
@@ -121,18 +122,43 @@ export class PositionsService {
 			return;
 		}
 
+		const items: PositionQuery[] = data.positions.items;
 		const list: PositionsQueryObjectArray = {};
+		const balanceOfDataPromises: Promise<bigint>[] = [];
+		const mintedDataPromises: Promise<bigint>[] = [];
 
-		for (const p of data.positions.items as PositionQuery[]) {
-			/// Forces the collateral balance to be overwritten with the latest blockchain state, instead of the ponder state.
-			/// This ensures that collateral transfers can be made without using the smart contract or application directly,
-			/// and the API will be aware of the updated state.
-			const fetchedBalance = await VIEM_CONFIG.readContract({
-				address: p.collateral,
-				abi: erc20Abi,
-				functionName: 'balanceOf',
-				args: [p.position],
-			});
+		for (const p of items) {
+			// Forces the collateral balance to be overwritten with the latest blockchain state, instead of the ponder state.
+			// This ensures that collateral transfers can be made without using the smart contract or application directly,
+			// and the API will be aware of the updated state.
+			balanceOfDataPromises.push(
+				VIEM_CONFIG.readContract({
+					address: p.collateral,
+					abi: erc20Abi,
+					functionName: 'balanceOf',
+					args: [p.position],
+				})
+			);
+
+			// fetch minted - See issue #11
+			// https://github.com/Frankencoin-ZCHF/frankencoin-api/issues/11
+			mintedDataPromises.push(
+				VIEM_CONFIG.readContract({
+					address: p.position,
+					abi: PositionABI,
+					functionName: 'minted',
+				})
+			);
+		}
+
+		// await for contract calls
+		const balanceOfData = await Promise.allSettled(balanceOfDataPromises);
+		const mintedData = await Promise.allSettled(mintedDataPromises);
+
+		for (let idx = 0; idx < items.length; idx++) {
+			const p = items[idx];
+			const b = (balanceOfData[idx] as PromiseFulfilledResult<bigint>).value;
+			const m = (mintedData[idx] as PromiseFulfilledResult<bigint>).value;
 
 			list[p.position.toLowerCase()] = {
 				position: getAddress(p.position),
@@ -163,13 +189,13 @@ export class PositionsService {
 				collateralName: p.collateralName,
 				collateralSymbol: p.collateralSymbol,
 				collateralDecimals: p.collateralDecimals,
-				collateralBalance: fetchedBalance.toString(),
+				collateralBalance: typeof b === 'bigint' ? b.toString() : p.position,
 
 				limitForPosition: p.limitForPosition,
 				limitForClones: p.limitForClones,
 				availableForPosition: p.availableForPosition,
 				availableForClones: p.availableForClones,
-				minted: p.minted,
+				minted: typeof m === 'bigint' ? m.toString() : p.minted,
 			};
 		}
 

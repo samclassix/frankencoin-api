@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ValidationError } from '@nestjs/common';
 import { GetObjectCommand, GetObjectCommandOutput, PutObjectCommand, PutObjectCommandOutput, S3Client } from '@aws-sdk/client-s3';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { ValidationError, validate } from 'class-validator';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class Storj extends S3Client {
@@ -24,7 +24,12 @@ export class Storj extends S3Client {
 			Key: key,
 			Body: JSON.stringify(data),
 		});
-		return await this.send(cmd);
+
+		try {
+			return await this.send(cmd);
+		} catch (error) {
+			return error;
+		}
 	}
 
 	async read<T extends object>(
