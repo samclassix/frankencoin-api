@@ -89,6 +89,7 @@ export class TelegramService {
 			await this.bot.sendMessage(group.toString(), message, { parse_mode: 'Markdown', disable_web_page_preview: true });
 		} catch (error) {
 			const msg = {
+				notFound: 'ETELEGRAM: 400 Bad Request: chat not found',
 				deleted: 'ETELEGRAM: 403 Forbidden: the group chat was deleted',
 				blocked: 'ETELEGRAM: 403 Forbidden: bot was blocked by the user',
 			};
@@ -97,9 +98,9 @@ export class TelegramService {
 				if (error?.message.includes(msg.deleted)) {
 					this.logger.warn(`[${group}]` + msg.deleted);
 					this.ignoreTelegramGroup(group);
-					//	} else if (error?.message.includes(msg.blocked)) {
-					// 		this.logger.warn(`[${group}]` + msg.blocked);
-					// 		this.ignoreTelegramGroup(group);
+				} else if (error?.message.includes(msg.notFound)) {
+					this.logger.warn(`[${group}]` + msg.notFound);
+					this.ignoreTelegramGroup(group);
 				} else {
 					this.logger.warn(error?.message);
 				}
