@@ -96,10 +96,10 @@ export class TelegramService {
 
 			if (typeof error === 'object') {
 				if (error?.message.includes(msg.deleted)) {
-					this.logger.warn(`[${group}]` + msg.deleted);
+					this.logger.warn(msg.deleted + ` (${group})`);
 					this.ignoreTelegramGroup(group);
 				} else if (error?.message.includes(msg.notFound)) {
-					this.logger.warn(`[${group}]` + msg.notFound);
+					this.logger.warn(msg.notFound + ` (${group})`);
 					this.ignoreTelegramGroup(group);
 				} else {
 					this.logger.warn(error?.message);
