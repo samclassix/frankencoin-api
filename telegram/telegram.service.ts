@@ -41,20 +41,21 @@ export class TelegramService {
 		this.logger.log(`Reading backup groups from storj`);
 		const response = await this.storj.read(this.storjPath, Groups);
 
+		const time: number = Date.now();
+		const defaultState: TelegramGroupState = {
+			apiVersion: process.env.npm_package_version,
+			createdAt: time,
+			updatedAt: time,
+			groups: [],
+			ignore: [],
+		};
+
 		if (response.messageError || response.validationError.length > 0) {
 			this.logger.error(response.messageError);
-
-			const time: number = Date.now();
-			this.telegramGroupState = {
-				apiVersion: process.env.npm_package_version,
-				createdAt: time,
-				updatedAt: time,
-				groups: [],
-			};
-
+			this.telegramGroupState = defaultState;
 			this.logger.log(`Telegram group state created...`);
 		} else {
-			this.telegramGroupState = response.data;
+			this.telegramGroupState = { ...defaultState, ...response.data };
 			this.logger.log(`Telegram group state restored...`);
 			this.sendMessageAll(StartUpMessage());
 		}
@@ -87,10 +88,25 @@ export class TelegramService {
 			this.logger.debug(`Sending message to group id ${group}`);
 			await this.bot.sendMessage(group.toString(), message, { parse_mode: 'Markdown', disable_web_page_preview: true });
 		} catch (error) {
-			// FIXME: Error: ETELEGRAM: 403 Forbidden: the group chat was deleted
-			// FIXME: Error: ETELEGRAM: 403 Forbidden: bot was blocked by the user
-			// FIXME: Remove from groups. When to perform backup, speed efficient?
-			this.logger.error(error);
+			const msg = {
+				notFound: 'ETELEGRAM: 400 Bad Request: chat not found',
+				deleted: 'ETELEGRAM: 403 Forbidden: the group chat was deleted',
+				blocked: 'ETELEGRAM: 403 Forbidden: bot was blocked by the user',
+			};
+
+			if (typeof error === 'object') {
+				if (error?.message.includes(msg.deleted)) {
+					this.logger.warn(msg.deleted + ` (${group})`);
+					this.ignoreTelegramGroup(group);
+				} else if (error?.message.includes(msg.notFound)) {
+					this.logger.warn(msg.notFound + ` (${group})`);
+					this.ignoreTelegramGroup(group);
+				} else {
+					this.logger.warn(error?.message);
+				}
+			} else {
+				this.logger.warn(error);
+			}
 		}
 	}
 
@@ -144,12 +160,34 @@ export class TelegramService {
 		}
 	}
 
-	upsertTelegramGroup(id: number): boolean {
+	upsertTelegramGroup(id: number | string): boolean {
 		if (!id) return;
+		if (this.telegramGroupState.ignore.includes(id.toString())) return false;
 		if (this.telegramGroupState.groups.includes(id.toString())) return false;
 		this.telegramGroupState.groups.push(id.toString());
 		this.logger.log(`Upserted Telegram Group: ${id}`);
 		this.sendMessage(id, WelcomeGroupMessage(id));
 		return true;
+	}
+
+	async ignoreTelegramGroup(id: number | string): Promise<boolean> {
+		if (!id) return;
+		const inGroup: boolean = this.telegramGroupState.groups.includes(id.toString());
+		const inIgnore: boolean = this.telegramGroupState.ignore.includes(id.toString());
+		const update: boolean = inGroup || !inIgnore;
+
+		if (!inIgnore) this.telegramGroupState.ignore.push(id.toString());
+
+		if (inGroup) {
+			const newGroup: string[] = this.telegramGroupState.groups.filter((g) => g !== id.toString());
+			this.telegramGroupState.groups = newGroup;
+		}
+
+		if (update) {
+			this.logger.log(`Ignore Telegram Group: ${id}`);
+			await this.writeBackupGroups();
+		}
+
+		return update;
 	}
 }

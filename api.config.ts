@@ -63,6 +63,11 @@ export const VIEM_CHAIN = CONFIG[CONFIG_PROFILE].chain;
 export const VIEM_CONFIG = createPublicClient({
 	chain: VIEM_CHAIN,
 	transport: http(CONFIG[CONFIG_PROFILE].rpc),
+	batch: {
+		multicall: {
+			wait: 200,
+		},
+	},
 });
 
 // COINGECKO API KEY
