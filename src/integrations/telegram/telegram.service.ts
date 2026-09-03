@@ -466,8 +466,8 @@ export class TelegramService {
 		const THRES_ALERT = 1.05;
 		const THRES_WARN = 1.1;
 		const DELAY_LOWEST = 2 * 60 * 60 * 1000;
-		const DELAY_ALERT = 12 * 60 * 60 * 1000;
-		const DELAY_WARNING = 24 * 60 * 60 * 1000;
+		const DELAY_ALERT = 24 * 60 * 60 * 1000;
+		const DELAY_WARNING = 48 * 60 * 60 * 1000;
 
 		for (const p of openPositions) {
 			const posPrice = parseFloat(formatUnits(BigInt(p.price), 36 - p.collateralDecimals));
