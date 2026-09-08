@@ -763,26 +763,53 @@
 			if (!Array.isArray(ranked)) return;
 			const tbody = document.getElementById('ranked-table');
 			const rows = ranked.slice(0, 20);
-			tbody.innerHTML = rows.length === 0
-				? '<tr><td colspan="7" style="color:#888;padding:8px 10px">No data</td></tr>'
-				: rows.map((r, i) => {
-					const key = `${r.chainId}:${r.account}`;
-					const unclaimed = unclaimedMap?.[key];
-					const unclaimedCell = loading
-						? '<td style="color:#aaa">…</td>'
-						: unclaimed == null
-							? '<td style="color:#aaa">—</td>'
-							: `<td style="color:#f59e0b">${fmt(unclaimed)}</td>`;
-					return `<tr>
-						<td>${i + 1}</td>
-						<td title="${r.account}"><a href="${explorerAddr(r.chainId, r.account)}" target="_blank" style="color:#2563eb;text-decoration:none">${shortAddr(r.account)}</a></td>
-						<td><span class="tag tag-blue">${chainLabel(r.chainId)}</span></td>
-						<td>${fmt(r.balance)}</td>
-						<td style="color:#16a34a">${fmt(r.interest)}</td>
-						${unclaimedCell}
-						<td style="color:#aaa">${ts(r.updated)}</td>
-					</tr>`;
-				}).join('');
+			if (rows.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="7" style="color:#888;padding:8px 10px">No data</td></tr>';
+				return;
+			}
+
+			let totalBalance = 0n, totalInterest = 0n, totalUnclaimed = 0n, unclaimedCount = 0;
+			const body = rows.map((r, i) => {
+				const key = `${r.chainId}:${r.account}`;
+				const unclaimed = unclaimedMap?.[key];
+				totalBalance += BigInt(r.balance);
+				totalInterest += BigInt(r.interest);
+				const unclaimedCell = loading
+					? '<td style="color:#aaa">…</td>'
+					: unclaimed == null
+						? '<td style="color:#aaa">—</td>'
+						: `<td style="color:#f59e0b">${fmt(unclaimed)}</td>`;
+				if (!loading && unclaimed != null) {
+					totalUnclaimed += BigInt(unclaimed);
+					unclaimedCount++;
+				}
+				return `<tr>
+					<td>${i + 1}</td>
+					<td title="${r.account}"><a href="${explorerAddr(r.chainId, r.account)}" target="_blank" style="color:#2563eb;text-decoration:none">${shortAddr(r.account)}</a></td>
+					<td><span class="tag tag-blue">${chainLabel(r.chainId)}</span></td>
+					<td>${fmt(r.balance)}</td>
+					<td style="color:#16a34a">${fmt(r.interest)}</td>
+					${unclaimedCell}
+					<td style="color:#aaa">${ts(r.updated)}</td>
+				</tr>`;
+			}).join('');
+
+			const totalUnclaimedCell = loading
+				? '<td style="color:#aaa">…</td>'
+				: unclaimedCount === 0
+					? '<td style="color:#aaa">—</td>'
+					: `<td style="color:#f59e0b">${fmt(totalUnclaimed.toString())}</td>`;
+
+			const totalRow = `<tr style="font-weight:bold;border-top:2px solid #ccc">
+				<td colspan="2">Total (${rows.length})</td>
+				<td></td>
+				<td>${fmt(totalBalance.toString())}</td>
+				<td style="color:#16a34a">${fmt(totalInterest.toString())}</td>
+				${totalUnclaimedCell}
+				<td></td>
+			</tr>`;
+
+			tbody.innerHTML = body + totalRow;
 		}
 
 		load();
