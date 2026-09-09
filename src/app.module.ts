@@ -14,8 +14,10 @@ import { AnalyticsModule } from 'modules/analytics/analytics.module';
 import { BridgeModule } from 'modules/bridge/bridge.module';
 import { ChallengesModule } from 'modules/challenges/challenges.module';
 import { EcosystemModule } from 'modules/ecosystem/ecosystem.module';
+import { FcsModule } from 'modules/fcs/fcs.module';
 import { PositionsModule } from 'modules/positions/positions.module';
 import { PricesModule } from 'modules/prices/prices.module';
+import { ReportingModule } from 'modules/reporting/reporting.module';
 import { SavingsModule } from 'modules/savings/savings.module';
 import { TelegramModule } from 'integrations/telegram/telegram.module';
 import { TransferModule } from 'modules/transfer/transfer.module';
@@ -46,6 +48,8 @@ import { ApiService } from 'app.service';
 		TransferModule,
 		AnalyticsModule,
 		TelegramModule,
+		FcsModule,
+		ReportingModule,
 	],
 	providers: [ApiService],
 })
