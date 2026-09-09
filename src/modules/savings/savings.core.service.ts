@@ -14,7 +14,8 @@ import {
 	SavingsStatusQuery,
 } from './savings.core.types';
 import { PONDER_CLIENT } from 'app.config';
-import { formatFloat } from 'utils/format';
+import { formatFloat, normalizeAddress } from 'utils/format';
+import { TtlCache } from 'utils/ttl-cache';
 import { Address } from 'viem';
 
 @Injectable()
@@ -22,6 +23,8 @@ export class SavingsCoreService {
 	private readonly logger = new Logger(this.constructor.name);
 	private fetchedStatus: SavingsStatusMapping = {} as SavingsStatusMapping;
 	private fetchedRanked: SavingsBalance[] = [];
+	private activityCache = new TtlCache<ApiSavingsActivity>(1 * 60 * 1000);
+	private balanceCache = new TtlCache<ApiSavingsBalance>(1 * 60 * 1000);
 
 	constructor(private readonly fc: EcosystemFrankencoinService) {}
 
@@ -51,6 +54,10 @@ export class SavingsCoreService {
 	}
 
 	async getBalance(account: Address): Promise<ApiSavingsBalance> {
+		return this.balanceCache.getOrCompute(normalizeAddress(account), () => this.fetchBalance(account));
+	}
+
+	private async fetchBalance(account: Address): Promise<ApiSavingsBalance> {
 		this.logger.debug('getting getBalance');
 		const response = await PONDER_CLIENT.query<{
 			savingsMappings: {
@@ -117,6 +124,10 @@ export class SavingsCoreService {
 	}
 
 	async getActivity(account: Address): Promise<ApiSavingsActivity> {
+		return this.activityCache.getOrCompute(normalizeAddress(account), () => this.fetchActivity(account));
+	}
+
+	private async fetchActivity(account: Address): Promise<ApiSavingsActivity> {
 		this.logger.debug('getting getActivity');
 		const response = await PONDER_CLIENT.query<{
 			savingsActivitys: {

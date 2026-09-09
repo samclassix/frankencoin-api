@@ -30,6 +30,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ContractBlacklist, ContractWhitelist } from './prices.mgm';
 import { getChain } from 'utils/func-helper';
 import { normalizeAddress } from 'utils/format';
+import { TtlCache } from 'utils/ttl-cache';
 
 @Injectable()
 export class PricesService {
@@ -38,6 +39,7 @@ export class PricesService {
 	private fetchedPrices: PriceQueryObjectArray = {};
 	private fetchedMarketChart: PriceMarketChartObject = { prices: [], market_caps: [], total_volumes: [] };
 	private historyService: IHistoryService | null = null;
+	private ownerValueLockedCache = new TtlCache<ApiOwnerValueLocked>(1 * 60 * 1000);
 
 	registerHistoryService(service: IHistoryService) {
 		this.historyService = service;
@@ -271,6 +273,10 @@ export class PricesService {
 	}
 
 	async getOwnerValueLocked(owner: Address): Promise<ApiOwnerValueLocked> {
+		return this.ownerValueLockedCache.getOrCompute(normalizeAddress(owner), () => this.fetchOwnerValueLocked(owner));
+	}
+
+	private async fetchOwnerValueLocked(owner: Address): Promise<ApiOwnerValueLocked> {
 		owner = normalizeAddress(owner);
 		const history = await this.positionsService.getOwnerHistory(owner);
 
