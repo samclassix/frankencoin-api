@@ -11,3 +11,5 @@ export * from '../src/modules/positions/positions.types';
 export * from '../src/modules/prices/prices.types';
 export * from '../src/integrations/telegram/telegram.types';
 export * from '../src/modules/transfer/transfer.reference.types';
+export * from '../src/modules/fcs/fcs.types';
+export * from '../src/modules/reporting/reporting.types';
