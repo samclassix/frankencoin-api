@@ -44,60 +44,104 @@ export class ReportingService {
 	// FPS1 and FCS balance history both come out of Ponder's generic ERC20Balance pipeline
 	// (Equity/FCS/Frankencoin transfers all land in the same table, keyed by `token`), so this
 	// query works unchanged for either token address.
+	// @dev: ponder caps a single page at 1000 items, so the full history has to be walked with
+	// cursor pagination — see app/hooks/useFPSEarningsHistory.ts for the same fix on the client side.
 	private async fetchBalanceHistory(address: Address, token: Address): Promise<BalanceCheckpoint[]> {
-		const response = await PONDER_CLIENT.query<{
-			eRC20Balances: { items: { created: string; to: string; balanceFrom: string; balanceTo: string }[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-				query FpsYearlyBalanceHistory($token: String!, $addr: String!) {
-					eRC20Balances(
-						where: { chainId: 1, token: $token, OR: [{ from: $addr }, { to: $addr }] }
-						orderBy: "count"
-						orderDirection: "asc"
-						limit: 1000
-					) {
-						items {
-							created
-							to
-							balanceFrom
-							balanceTo
+		const collected: BalanceCheckpoint[] = [];
+		let after: string | null = null;
+
+		do {
+			const response = await PONDER_CLIENT.query<{
+				eRC20Balances: {
+					items: { created: string; to: string; balanceFrom: string; balanceTo: string }[];
+					pageInfo: { endCursor: string | null; hasNextPage: boolean };
+				};
+			}>({
+				fetchPolicy: 'no-cache',
+				query: gql`
+					query FpsYearlyBalanceHistory($token: String!, $addr: String!, $after: String) {
+						eRC20Balances(
+							where: { chainId: 1, token: $token, OR: [{ from: $addr }, { to: $addr }] }
+							orderBy: "count"
+							orderDirection: "asc"
+							limit: 1000
+							after: $after
+						) {
+							items {
+								created
+								to
+								balanceFrom
+								balanceTo
+							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
-				}
-			`,
-			variables: { token: token.toLowerCase(), addr: address },
-		});
+				`,
+				variables: { token: token.toLowerCase(), addr: address, after },
+			});
 
-		const items = response.data?.eRC20Balances?.items ?? [];
-		return items.map((i) => ({
-			created: Number(i.created),
-			balance: normalizeAddress(i.to) === address ? BigInt(i.balanceTo) : BigInt(i.balanceFrom),
-		}));
+			const page = response.data?.eRC20Balances;
+			if (!page?.items) break;
+
+			for (const i of page.items) {
+				collected.push({
+					created: Number(i.created),
+					balance: normalizeAddress(i.to) === address ? BigInt(i.balanceTo) : BigInt(i.balanceFrom),
+				});
+			}
+
+			after = page.pageInfo?.hasNextPage ? page.pageInfo.endCursor : null;
+		} while (after);
+
+		return collected;
 	}
 
 	// Global earningsPerFPS delta series (Frankencoin:Profit/Loss). FCS deliberately rides this same
 	// series rather than getting its own — see ponder issue #68 item 2 for the one known gap (the
 	// redemption-discount windfall isn't reflected here yet).
 	private async fetchEarningsDeltas(): Promise<EarningsDelta[]> {
-		const response = await PONDER_CLIENT.query<{
-			frankencoinProfitLosss: { items: { created: string; perFPS: string }[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-				query FpsYearlyEarnings {
-					frankencoinProfitLosss(where: { chainId: 1 }, orderBy: "count", orderDirection: "asc", limit: 1000) {
-						items {
-							created
-							perFPS
+		const collected: EarningsDelta[] = [];
+		let after: string | null = null;
+
+		do {
+			const response = await PONDER_CLIENT.query<{
+				frankencoinProfitLosss: {
+					items: { created: string; perFPS: string }[];
+					pageInfo: { endCursor: string | null; hasNextPage: boolean };
+				};
+			}>({
+				fetchPolicy: 'no-cache',
+				query: gql`
+					query FpsYearlyEarnings($after: String) {
+						frankencoinProfitLosss(where: { chainId: 1 }, orderBy: "count", orderDirection: "asc", limit: 1000, after: $after) {
+							items {
+								created
+								perFPS
+							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
-				}
-			`,
-		});
+				`,
+				variables: { after },
+			});
 
-		const items = response.data?.frankencoinProfitLosss?.items ?? [];
-		return items.map((i) => ({ created: Number(i.created), perFPS: BigInt(i.perFPS) }));
+			const page = response.data?.frankencoinProfitLosss;
+			if (!page?.items) break;
+
+			for (const i of page.items) {
+				collected.push({ created: Number(i.created), perFPS: BigInt(i.perFPS) });
+			}
+
+			after = page.pageInfo?.hasNextPage ? page.pageInfo.endCursor : null;
+		} while (after);
+
+		return collected;
 	}
 
 	// Reuses AnalyticsService's already-cached AnalyticDailyLog rows instead of re-querying Ponder.
