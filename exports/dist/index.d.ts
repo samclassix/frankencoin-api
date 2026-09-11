@@ -1,5 +1,120 @@
-import { Address } from 'viem';
 import { ChainId, SupportedChain, ChainIdMain } from '@frankencoin/zchf';
+import { Address } from 'viem';
+
+type AmplifierStatusPonder = {
+    chainId: ChainId;
+    address: Address;
+    pool: Address;
+    usd: Address;
+    zchf: Address;
+    zchfIsToken0: boolean;
+    expiration: string;
+    limit: string;
+    priceAnchorX96: string;
+    totalBorrowed: string;
+    positionCount: number;
+    created: string;
+    updated: string;
+};
+type AmplifierPositionPonder = {
+    chainId: ChainId;
+    position: Address;
+    amplifier: Address;
+    owner: Address;
+    tickLow: number;
+    tickHigh: number;
+    liquidity: string;
+    borrowed: string;
+    created: string;
+    updated: string;
+};
+type AmplifierActivityPonder = {
+    chainId: ChainId;
+    txHash: string;
+    count: string;
+    amplifier: Address;
+    position: Address;
+    kind: 'Mint' | 'Burn';
+    liquidity: string;
+    token0: string;
+    token1: string;
+    zchf: string;
+    totalBorrowed: string;
+    sender: Address;
+    created: string;
+    blockheight: string;
+};
+type AmplifierQuery = {
+    chainId: ChainId;
+    address: Address;
+    pool: Address;
+    zchf: Address;
+    usd: Address;
+    usdSymbol: string;
+    usdDecimals: number;
+    zchfIsToken0: boolean;
+    expiration: number;
+    limit: string;
+    totalBorrowed: string;
+    positionCount: number;
+    zchfAmount: number;
+    usdAmount: number;
+    usdPerZchf: number;
+    poolValueZchf: number;
+    avgCollRatio: number;
+    asOf: number;
+};
+type AmplifierPositionQuery = {
+    chainId: ChainId;
+    position: Address;
+    amplifier: Address;
+    owner: Address;
+    tickLow: number;
+    tickHigh: number;
+    liquidity: string;
+    borrowed: string;
+    created: number;
+    zchfAmount: number;
+    usdAmount: number;
+};
+type AmplifierActivityQuery = {
+    chainId: ChainId;
+    txHash: string;
+    count: number;
+    amplifier: Address;
+    position: Address;
+    kind: 'Mint' | 'Burn';
+    liquidity: string;
+    token0: string;
+    token1: string;
+    zchf: string;
+    totalBorrowed: string;
+    sender: Address;
+    created: number;
+    blockheight: number;
+};
+type AmplifierQueryObjectArray = {
+    [key: Address]: AmplifierQuery;
+};
+type AmplifierPositionsObjectArray = {
+    [key: Address]: AmplifierPositionQuery[];
+};
+type AmplifierActivityObjectArray = {
+    [key: Address]: AmplifierActivityQuery[];
+};
+type ApiAmplifierListing = {
+    num: number;
+    list: AmplifierQuery[];
+};
+type ApiAmplifierPositions = {
+    num: number;
+    list: AmplifierPositionQuery[];
+};
+type ApiAmplifierActivity = {
+    num: number;
+    total: number;
+    list: AmplifierActivityQuery[];
+};
 
 type AnalyticsExposureItem = {
     collateral: {
@@ -914,4 +1029,4 @@ type ApiTransferReferenceQuery = TransferReferenceQuery[] | {
     error: string;
 };
 
-export { type AlertType, type AnalyticsDailyLog, type AnalyticsExposureItem, type AnalyticsProfitLossLog, type AnalyticsTransactionLog, type ApiAnalyticsCollateralExposure, type ApiAnalyticsFpsEarnings, type ApiAnalyticsProfitLossLog, type ApiBidsBidders, type ApiBidsChallenges, type ApiBidsListing, type ApiBidsMapping, type ApiBidsPositions, type ApiChallengesChallengers, type ApiChallengesListing, type ApiChallengesMapping, type ApiChallengesPositions, type ApiChallengesPrices, type ApiDailyLog, type ApiEcosystemCollateralList, type ApiEcosystemCollateralListArray, type ApiEcosystemCollateralPositions, type ApiEcosystemCollateralPositionsDetails, type ApiEcosystemCollateralStats, type ApiEcosystemCollateralStatsItem, type ApiEcosystemFpsInfo, type ApiEcosystemFrankencoinInfo, type ApiEcosystemFrankencoinKeyValues, type ApiEcosystemFrankencoinSupply, type ApiLeadrateInfo, type ApiLeadrateProposed, type ApiLeadrateRate, type ApiMinterListing, type ApiMinterMapping, type ApiMintingUpdateListing, type ApiMintingUpdateMapping, type ApiOwnerDebt, type ApiOwnerFees, type ApiOwnerHistory, type ApiOwnerTransfersListing, type ApiOwnerValueLocked, type ApiPositionsListing, type ApiPositionsMapping, type ApiPositionsOwners, type ApiPriceERC20, type ApiPriceERC20Mapping, type ApiPriceListing, type ApiPriceMapping, type ApiPriceMarketChart, type ApiSavingsActivity, type ApiSavingsBalance, type ApiSavingsInfo, type ApiSavingsRanked, type ApiSavingsReferrerEarnings, type ApiSavingsReferrerMapping, type ApiTransactionLog, type ApiTransferReferenceList, type ApiTransferReferenceQuery, type BidsBidderMapping, type BidsChallengesMapping, type BidsId, type BidsPositionsMapping, type BidsQueryItem, type BidsQueryItemMapping, BidsQueryType, type BidsType, type ChallengesChallengersMapping, type ChallengesId, type ChallengesPositionsMapping, type ChallengesPricesMapping, type ChallengesQueryItem, type ChallengesQueryItemMapping, ChallengesQueryStatus, type ChallengesStatus, type ERC20Info, type ERC20InfoObjectArray, type EcosystemCollateralPositionsDetailsItem, type EcosystemCollateralPositionsItem, type EcosystemERC20StatusQuery, type EcosystemERC20TotalSupply, type EcosystemFrankencoin, type EcosystemFrankencoinKeyValues, type EcosystemFrankencoinMapping, type EcosystemFrankencoinSupplyListing, type EcosystemQuery, type FrankencoinSupplyQuery, type FrankencoinSupplyQueryObject, type LeadrateProposedMapping, type LeadrateProposedOpen, type LeadrateProposedQuery, type LeadrateRateMapping, type LeadrateRateQuery, type MinterQuery, type MinterQueryObjectArray, type MintingUpdateQuery, type MintingUpdateQueryId, type MintingUpdateQueryObjectArray, type MintingUpdateQueryV1, type MintingUpdateQueryV2, type OwnerTransferQuery, type OwnersPositionsObjectArray, type PositionPriceAlertState, type PositionQuery, type PositionQueryV1, type PositionQueryV2, type PositionsQueryObjectArray, type PriceHistoryQuery, type PriceHistoryQueryObjectArray, type PriceHistoryRatio, type PriceMarketChartObject, type PriceQuery, type PriceQueryCurrencies, type PriceQueryObjectArray, type PriceSource, type SavingsActivityQuery, type SavingsBalance, type SavingsBalanceAccountMapping, type SavingsBalanceChainIdMapping, type SavingsBalanceQuery, type SavingsReferrerAccountItem, type SavingsReferrerEarnings, type SavingsReferrerEarningsQuery, type SavingsReferrerMapping, type SavingsReferrerMappingQuery, type SavingsStatus, type SavingsStatusMapping, type SavingsStatusQuery, type TelegramState, type TransferReferenceObjectArray, type TransferReferenceQuery };
+export { type AlertType, type AmplifierActivityObjectArray, type AmplifierActivityPonder, type AmplifierActivityQuery, type AmplifierPositionPonder, type AmplifierPositionQuery, type AmplifierPositionsObjectArray, type AmplifierQuery, type AmplifierQueryObjectArray, type AmplifierStatusPonder, type AnalyticsDailyLog, type AnalyticsExposureItem, type AnalyticsProfitLossLog, type AnalyticsTransactionLog, type ApiAmplifierActivity, type ApiAmplifierListing, type ApiAmplifierPositions, type ApiAnalyticsCollateralExposure, type ApiAnalyticsFpsEarnings, type ApiAnalyticsProfitLossLog, type ApiBidsBidders, type ApiBidsChallenges, type ApiBidsListing, type ApiBidsMapping, type ApiBidsPositions, type ApiChallengesChallengers, type ApiChallengesListing, type ApiChallengesMapping, type ApiChallengesPositions, type ApiChallengesPrices, type ApiDailyLog, type ApiEcosystemCollateralList, type ApiEcosystemCollateralListArray, type ApiEcosystemCollateralPositions, type ApiEcosystemCollateralPositionsDetails, type ApiEcosystemCollateralStats, type ApiEcosystemCollateralStatsItem, type ApiEcosystemFpsInfo, type ApiEcosystemFrankencoinInfo, type ApiEcosystemFrankencoinKeyValues, type ApiEcosystemFrankencoinSupply, type ApiLeadrateInfo, type ApiLeadrateProposed, type ApiLeadrateRate, type ApiMinterListing, type ApiMinterMapping, type ApiMintingUpdateListing, type ApiMintingUpdateMapping, type ApiOwnerDebt, type ApiOwnerFees, type ApiOwnerHistory, type ApiOwnerTransfersListing, type ApiOwnerValueLocked, type ApiPositionsListing, type ApiPositionsMapping, type ApiPositionsOwners, type ApiPriceERC20, type ApiPriceERC20Mapping, type ApiPriceListing, type ApiPriceMapping, type ApiPriceMarketChart, type ApiSavingsActivity, type ApiSavingsBalance, type ApiSavingsInfo, type ApiSavingsRanked, type ApiSavingsReferrerEarnings, type ApiSavingsReferrerMapping, type ApiTransactionLog, type ApiTransferReferenceList, type ApiTransferReferenceQuery, type BidsBidderMapping, type BidsChallengesMapping, type BidsId, type BidsPositionsMapping, type BidsQueryItem, type BidsQueryItemMapping, BidsQueryType, type BidsType, type ChallengesChallengersMapping, type ChallengesId, type ChallengesPositionsMapping, type ChallengesPricesMapping, type ChallengesQueryItem, type ChallengesQueryItemMapping, ChallengesQueryStatus, type ChallengesStatus, type ERC20Info, type ERC20InfoObjectArray, type EcosystemCollateralPositionsDetailsItem, type EcosystemCollateralPositionsItem, type EcosystemERC20StatusQuery, type EcosystemERC20TotalSupply, type EcosystemFrankencoin, type EcosystemFrankencoinKeyValues, type EcosystemFrankencoinMapping, type EcosystemFrankencoinSupplyListing, type EcosystemQuery, type FrankencoinSupplyQuery, type FrankencoinSupplyQueryObject, type LeadrateProposedMapping, type LeadrateProposedOpen, type LeadrateProposedQuery, type LeadrateRateMapping, type LeadrateRateQuery, type MinterQuery, type MinterQueryObjectArray, type MintingUpdateQuery, type MintingUpdateQueryId, type MintingUpdateQueryObjectArray, type MintingUpdateQueryV1, type MintingUpdateQueryV2, type OwnerTransferQuery, type OwnersPositionsObjectArray, type PositionPriceAlertState, type PositionQuery, type PositionQueryV1, type PositionQueryV2, type PositionsQueryObjectArray, type PriceHistoryQuery, type PriceHistoryQueryObjectArray, type PriceHistoryRatio, type PriceMarketChartObject, type PriceQuery, type PriceQueryCurrencies, type PriceQueryObjectArray, type PriceSource, type SavingsActivityQuery, type SavingsBalance, type SavingsBalanceAccountMapping, type SavingsBalanceChainIdMapping, type SavingsBalanceQuery, type SavingsReferrerAccountItem, type SavingsReferrerEarnings, type SavingsReferrerEarningsQuery, type SavingsReferrerMapping, type SavingsReferrerMappingQuery, type SavingsStatus, type SavingsStatusMapping, type SavingsStatusQuery, type TelegramState, type TransferReferenceObjectArray, type TransferReferenceQuery };

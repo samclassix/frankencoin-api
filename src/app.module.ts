@@ -10,6 +10,7 @@ import { DataSourceModule } from 'core/data-source/data-source.module';
 import { appConfig, ponderConfig, viemConfig, coingeckoConfig } from 'config/index';
 
 // Feature modules
+import { AmplifierModule } from 'modules/amplifier/amplifier.module';
 import { AnalyticsModule } from 'modules/analytics/analytics.module';
 import { BridgeModule } from 'modules/bridge/bridge.module';
 import { ChallengesModule } from 'modules/challenges/challenges.module';
@@ -37,6 +38,7 @@ import { ApiService } from 'app.service';
 		DataSourceModule,
 
 		// Feature modules
+		AmplifierModule,
 		BridgeModule,
 		PositionsModule,
 		EcosystemModule,

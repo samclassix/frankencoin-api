@@ -6,6 +6,7 @@ import { PrismaService } from 'core/database/prisma.service';
 import { Address } from 'viem';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PositionsService } from 'modules/positions/positions.service';
+import { AmplifierService } from 'modules/amplifier/amplifier.service';
 import { EcosystemFrankencoinService } from 'modules/ecosystem/ecosystem.frankencoin.service';
 import { formatFloat, normalizeAddress, timestampStartOfDay } from 'utils/format';
 import { EcosystemFpsService } from 'modules/ecosystem/ecosystem.fps.service';
@@ -27,6 +28,7 @@ export class PricesHistoryService implements OnModuleInit {
 		private readonly prisma: PrismaService,
 		private readonly prices: PricesService,
 		private readonly positions: PositionsService,
+		private readonly amplifier: AmplifierService,
 		private readonly frankencoin: EcosystemFrankencoinService,
 		private readonly equity: EcosystemFpsService
 	) {
@@ -301,7 +303,17 @@ export class PricesHistoryService implements OnModuleInit {
 			},
 		];
 
-		const data = [...positionData, ...stablecoinBridges];
+		// Amplifiers: the ZCHF they minted is backed by the redemption value of their Uniswap positions.
+		// `supply` above is the cross-chain total (sum over all chains in getEcosystemFrankencoinInfo), so the Optimism
+		// amplifier's debt is in the denominator and its backing belongs in the numerator: include both amplifiers.
+		// minted x marketPrice / liqPrice contributes exactly poolValueZchf.
+		const amplifiers = this.amplifier.getList().list.map((a) => ({
+			minted: formatFloat(BigInt(a.totalBorrowed), 18),
+			marketPrice: a.avgCollRatio, // poolValue per 1 ZCHF of amplifier debt
+			liqPrice: 1,
+		}));
+
+		const data = [...positionData, ...stablecoinBridges, ...amplifiers];
 
 		const collMul = data.reduce((a, b) => {
 			if (b.liqPrice == 0) return a;
