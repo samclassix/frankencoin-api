@@ -39,7 +39,7 @@
 		"db:restore": "bash prisma/backup/db-restore.sh",
 		"infra:up": "docker stack deploy -c stack.testing.yml frankencoin-api",
 		"infra:down": "docker stack remove frankencoin-api",
-		"postinstall": "patch-package"
+		"prepare": "patch-package"
 	},
 	"dependencies": {
 		"@apollo/client": "^3.10.5",
