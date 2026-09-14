@@ -1,3 +1,4 @@
+export * from '../src/modules/amplifier/amplifier.types';
 export * from '../src/modules/analytics/analytics.types';
 export * from '../src/modules/challenges/challenges.types';
 export * from '../src/modules/ecosystem/ecosystem.minter.types';

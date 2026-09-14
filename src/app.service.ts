@@ -2,6 +2,7 @@ import { ChainId } from '@frankencoin/zchf';
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { VIEM_CONFIG } from 'app.config';
+import { AmplifierService } from 'modules/amplifier/amplifier.service';
 import { ChallengesService } from 'modules/challenges/challenges.service';
 import { EcosystemFpsService } from 'modules/ecosystem/ecosystem.fps.service';
 import { EcosystemFrankencoinService } from 'modules/ecosystem/ecosystem.frankencoin.service';
@@ -55,6 +56,7 @@ export class ApiService {
 		private readonly savings: SavingsCoreService,
 		private readonly transferRef: TransferReferenceService,
 		private readonly bridge: BridgeService,
+		private readonly amplifier: AmplifierService,
 		private readonly indexerHealth: IndexerHealthService
 	) {
 		setTimeout(() => this.updateBlockheight(), 100);
@@ -94,6 +96,7 @@ export class ApiService {
 		if (this.guard('transferRef', 10 * MIN)) promises.push(this.transferRef.updateReferences());
 		if (this.guard('bridgeProposals', 5 * MIN)) promises.push(this.bridge.updateProposals());
 		if (this.guard('bridgeChains', 5 * MIN)) promises.push(this.bridge.updateChains());
+		if (this.guard('amplifiers', MIN)) promises.push(this.amplifier.updateAmplifiers());
 		promises.push(this.telegram.updateTelegram());
 
 		return Promise.all(promises);
