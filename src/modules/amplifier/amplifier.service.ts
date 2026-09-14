@@ -1,12 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core';
-import { ChainId, UniswapV3PoolABI } from '@frankencoin/zchf';
+import { AmplifiedPositionABI, ChainId, UniswapV3PoolABI } from '@frankencoin/zchf';
 import { Address, erc20Abi, getAddress } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import { VIEM_CONFIG } from 'app.config';
 import { DataSourceManagerService } from 'core/data-source/data-source.manager.service';
 import { formatFloat, normalizeAddress } from 'utils/format';
-import { AmplifiedPositionABI } from './amplifier.abi';
 import { positionAmounts, sqrtPriceFromX96, usdPerZchf } from './amplifier.math';
 import {
 	AmplifierActivityObjectArray,
