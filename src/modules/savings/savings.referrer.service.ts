@@ -11,17 +11,22 @@ import {
 	SavingsReferrerMappingQuery,
 } from './savings.referrer.types';
 import { formatFloat, normalizeAddress } from 'utils/format';
+import { TtlCache } from 'utils/ttl-cache';
+
+const REFERRER_CACHE_TTL_MS = 1 * 60 * 1000;
 
 @Injectable()
 export class SavingsReferrerService {
 	private readonly logger = new Logger(this.constructor.name);
+	private mappingCache = new TtlCache<ApiSavingsReferrerMapping>(REFERRER_CACHE_TTL_MS);
+	private earningsCache = new TtlCache<ApiSavingsReferrerEarnings>(REFERRER_CACHE_TTL_MS);
 
 	getMapping(referrer: Address): Promise<ApiSavingsReferrerMapping> {
-		return this.fetchReferrerMapping(referrer);
+		return this.mappingCache.getOrCompute(normalizeAddress(referrer), () => this.fetchReferrerMapping(referrer));
 	}
 
 	getEarnings(referrer: Address): Promise<ApiSavingsReferrerEarnings> {
-		return this.fetchReferrerEarnings(referrer);
+		return this.earningsCache.getOrCompute(normalizeAddress(referrer), () => this.fetchReferrerEarnings(referrer));
 	}
 
 	async fetchReferrerMapping(referrer: Address): Promise<ApiSavingsReferrerMapping> {

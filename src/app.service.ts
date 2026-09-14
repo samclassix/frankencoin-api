@@ -7,6 +7,7 @@ import { ChallengesService } from 'modules/challenges/challenges.service';
 import { EcosystemFpsService } from 'modules/ecosystem/ecosystem.fps.service';
 import { EcosystemFrankencoinService } from 'modules/ecosystem/ecosystem.frankencoin.service';
 import { EcosystemMinterService } from 'modules/ecosystem/ecosystem.minter.service';
+import { FcsService } from 'modules/fcs/fcs.service';
 import { PositionsService } from 'modules/positions/positions.service';
 import { PricesService } from 'modules/prices/prices.service';
 import { SavingsCoreService } from 'modules/savings/savings.core.service';
@@ -48,6 +49,7 @@ export class ApiService {
 		private readonly prices: PricesService,
 		private readonly frankencoin: EcosystemFrankencoinService,
 		private readonly fps: EcosystemFpsService,
+		private readonly fcs: FcsService,
 		private readonly challenges: ChallengesService,
 		private readonly telegram: TelegramService,
 		private readonly leadrate: SavingsLeadrateService,
@@ -80,6 +82,8 @@ export class ApiService {
 		if (this.guard('keyValues', 5 * MIN)) promises.push(this.frankencoin.updateEcosystemKeyValues());
 		if (this.guard('erc20Status', 5 * MIN)) promises.push(this.frankencoin.updateEcosystemERC20Status());
 		if (this.guard('fps', 5 * MIN)) promises.push(this.fps.updateFpsInfo());
+		if (this.guard('fcsInfo', 5 * MIN)) promises.push(this.fcs.updateFcsInfo());
+		if (this.guard('fcsDiscount', 5 * MIN)) promises.push(this.fcs.updateFcsDiscount());
 		if (this.guard('leaRates', 5 * MIN)) promises.push(this.leadrate.updateLeadrateRates());
 		if (this.guard('leaProposals', 5 * MIN)) promises.push(this.leadrate.updateLeadrateProposals());
 		if (this.guard('savingsStatus', 5 * MIN)) promises.push(this.savings.updateSavingsStatus());

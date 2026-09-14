@@ -14,7 +14,7 @@ import {
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Address, isAddress, zeroAddress } from 'viem';
 
-@ApiTags('Positions')
+@ApiTags('Positions Controller')
 @Controller('positions')
 export class PositionsController {
 	constructor(private readonly positionsService: PositionsService) {}

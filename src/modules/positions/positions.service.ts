@@ -30,6 +30,9 @@ import { SavingsABI } from '@frankencoin/zchf';
 import { PositionV2ABI } from '@frankencoin/zchf';
 import { mainnet } from 'viem/chains';
 import { normalizeAddress } from 'utils/format';
+import { TtlCache } from 'utils/ttl-cache';
+
+const OWNER_CACHE_TTL_MS = 1 * 60 * 1000;
 
 @Injectable()
 export class PositionsService {
@@ -38,6 +41,15 @@ export class PositionsService {
 	private fetchedPositionV2s: PositionQueryV2[] = [];
 	private fetchedPositions: PositionsQueryObjectArray = {};
 	private fetchedMintingUpdates: MintingUpdateQueryObjectArray = {};
+
+	// Per-address reporting caches. getOwnerDebt/getOwnerHistory internally call getOwnerHistory/
+	// getOwnerTransfers, so caching each method independently also de-duplicates that nested chain.
+	private ownerFeesCache = new TtlCache<ApiMintingUpdateListing>(OWNER_CACHE_TTL_MS);
+	private ownerDebtCache = new TtlCache<ApiOwnerDebt>(OWNER_CACHE_TTL_MS);
+	private ownerHistoryCache = new TtlCache<ApiOwnerHistory>(OWNER_CACHE_TTL_MS);
+	private ownerTransfersCache = new TtlCache<ApiOwnerTransfersListing>(OWNER_CACHE_TTL_MS);
+	private mintingUpdatesPositionCache = new TtlCache<ApiMintingUpdateListing>(OWNER_CACHE_TTL_MS);
+	private mintingUpdatesOwnerCache = new TtlCache<ApiMintingUpdateListing>(OWNER_CACHE_TTL_MS);
 
 	constructor(private readonly dataSource: DataSourceManagerService) {}
 
@@ -592,6 +604,12 @@ export class PositionsService {
 	}
 
 	async getMintingUpdatesPosition(position: Address, version: number): Promise<ApiMintingUpdateListing> {
+		return this.mintingUpdatesPositionCache.getOrCompute(`${normalizeAddress(position)}:${version}`, () =>
+			this.fetchMintingUpdatesPosition(position, version)
+		);
+	}
+
+	private async fetchMintingUpdatesPosition(position: Address, version: number): Promise<ApiMintingUpdateListing> {
 		if (version == 1) {
 			const { data } = await PONDER_CLIENT.query<{
 				mintingHubV1MintingUpdateV1s: {
@@ -707,6 +725,10 @@ export class PositionsService {
 	}
 
 	async getMintingUpdatesOwner(owner: Address): Promise<ApiMintingUpdateListing> {
+		return this.mintingUpdatesOwnerCache.getOrCompute(normalizeAddress(owner), () => this.fetchMintingUpdatesOwner(owner));
+	}
+
+	private async fetchMintingUpdatesOwner(owner: Address): Promise<ApiMintingUpdateListing> {
 		const { data: version1 } = await PONDER_CLIENT.query<{
 			mintingHubV1MintingUpdateV1s: { items: MintingUpdateQueryV1[] };
 		}>({
@@ -1004,6 +1026,10 @@ export class PositionsService {
 	}
 
 	async getOwnerFees(owner: Address): Promise<ApiMintingUpdateListing> {
+		return this.ownerFeesCache.getOrCompute(normalizeAddress(owner), () => this.fetchOwnerFees(owner));
+	}
+
+	private async fetchOwnerFees(owner: Address): Promise<ApiMintingUpdateListing> {
 		const { data: version1 } = await PONDER_CLIENT.query<{
 			mintingHubV1MintingUpdateV1s: { items: MintingUpdateQueryV1[] };
 		}>({
@@ -1091,6 +1117,10 @@ export class PositionsService {
 	}
 
 	async getOwnerDebt(owner: Address): Promise<ApiOwnerDebt> {
+		return this.ownerDebtCache.getOrCompute(normalizeAddress(owner), () => this.fetchOwnerDebt(owner));
+	}
+
+	private async fetchOwnerDebt(owner: Address): Promise<ApiOwnerDebt> {
 		owner = normalizeAddress(owner);
 		const history = await this.getOwnerHistory(owner);
 
@@ -1122,6 +1152,10 @@ export class PositionsService {
 	}
 
 	async getOwnerHistory(owner: Address): Promise<ApiOwnerHistory> {
+		return this.ownerHistoryCache.getOrCompute(normalizeAddress(owner), () => this.fetchOwnerHistory(owner));
+	}
+
+	private async fetchOwnerHistory(owner: Address): Promise<ApiOwnerHistory> {
 		owner = normalizeAddress(owner);
 		const transfers = await this.getOwnerTransfers(owner);
 
@@ -1168,6 +1202,10 @@ export class PositionsService {
 	}
 
 	async getOwnerTransfers(owner: Address): Promise<ApiOwnerTransfersListing> {
+		return this.ownerTransfersCache.getOrCompute(normalizeAddress(owner), () => this.fetchOwnerTransfers(owner));
+	}
+
+	private async fetchOwnerTransfers(owner: Address): Promise<ApiOwnerTransfersListing> {
 		const { data: version1 } = await PONDER_CLIENT.query<{
 			mintingHubV1OwnerTransfersV1s: { items: OwnerTransferQuery[] };
 		}>({
