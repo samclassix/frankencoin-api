@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PONDER_CLIENT, PONDER_CLIENT_BACKUP, VIEM_CONFIG } from 'app.config';
-import { gql } from '@apollo/client/core';
+import { ApolloClient, DocumentNode, gql, NormalizedCacheObject } from '@apollo/client/core';
 import { DataSourceManagerService } from 'core/data-source/data-source.manager.service';
 import {
 	ApiMintingUpdateListing,
@@ -52,6 +52,38 @@ export class PositionsService {
 	private mintingUpdatesOwnerCache = new TtlCache<ApiMintingUpdateListing>(OWNER_CACHE_TTL_MS);
 
 	constructor(private readonly dataSource: DataSourceManagerService) {}
+
+	// @dev: ponder caps a single page at 1000 items, so any connection that can grow past that has
+	// to be walked with cursor pagination — see reporting.service.ts for the same fix. `query` must
+	// declare an `$after: String` variable and select `pageInfo { endCursor hasNextPage }` alongside
+	// `items` on the field named by `rootField`.
+	private async fetchAllPages<T>(
+		client: ApolloClient<NormalizedCacheObject>,
+		query: DocumentNode,
+		rootField: string,
+		variables: Record<string, unknown> = {}
+	): Promise<T[]> {
+		const collected: T[] = [];
+		let after: string | null = null;
+
+		do {
+			const { data } = await client.query<Record<string, { items: T[]; pageInfo: { endCursor: string | null; hasNextPage: boolean } }>>(
+				{
+					fetchPolicy: 'no-cache',
+					query,
+					variables: { ...variables, after },
+				}
+			);
+
+			const page = data?.[rootField];
+			if (!page?.items) break;
+
+			collected.push(...page.items);
+			after = page.pageInfo?.hasNextPage ? page.pageInfo.endCursor : null;
+		} while (after);
+
+		return collected;
+	}
 
 	getPositionsList(): ApiPositionsListing {
 		const pos = Object.values(this.fetchedPositions) as PositionQuery[];
@@ -120,15 +152,11 @@ export class PositionsService {
 		const client = currentSource === 'primary' ? PONDER_CLIENT : PONDER_CLIENT_BACKUP;
 
 		try {
-			const { data } = await client!.query<{
-				mintingHubV1PositionV1s: {
-					items: PositionQueryV1[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
-						mintingHubV1PositionV1s(orderBy: "created", orderDirection: "desc", limit: 1000) {
+			const items = await this.fetchAllPages<PositionQueryV1>(
+				client!,
+				gql`
+					query ($after: String) {
+						mintingHubV1PositionV1s(orderBy: "created", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								position
 								owner
@@ -167,17 +195,21 @@ export class PositionsService {
 								availableForClones
 								minted
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV1PositionV1s'
+			);
 
-			if (!data || !data?.mintingHubV1PositionV1s?.items?.length) {
+			if (!items.length) {
 				this.logger.warn('No Positions V1 found.');
 				return;
 			}
 
-			const items: PositionQuery[] = data.mintingHubV1PositionV1s.items as PositionQueryV1[];
 			const list: PositionsQueryObjectArray = {};
 			const balanceOfDataPromises: Promise<bigint>[] = [];
 			const mintedDataPromises: Promise<bigint>[] = [];
@@ -347,15 +379,11 @@ export class PositionsService {
 		const client = currentSource === 'primary' ? PONDER_CLIENT : PONDER_CLIENT_BACKUP;
 
 		try {
-			const { data } = await client!.query<{
-				mintingHubV2PositionV2s: {
-					items: PositionQueryV2[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
-						mintingHubV2PositionV2s(orderBy: "created", orderDirection: "desc", limit: 1000) {
+			const items = await this.fetchAllPages<PositionQueryV2>(
+				client!,
+				gql`
+					query ($after: String) {
+						mintingHubV2PositionV2s(orderBy: "created", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								position
 								owner
@@ -394,17 +422,21 @@ export class PositionsService {
 								availableForMinting
 								minted
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV2PositionV2s'
+			);
 
-			if (!data || !data?.mintingHubV2PositionV2s?.items?.length) {
+			if (!items.length) {
 				this.logger.warn('No Positions V2 found.');
 				return;
 			}
 
-			const items: PositionQuery[] = data.mintingHubV2PositionV2s.items as PositionQueryV2[];
 			const list: PositionsQueryObjectArray = {};
 			const balanceOfDataPromises: Promise<bigint>[] = [];
 			const mintedDataPromises: Promise<bigint>[] = [];
@@ -611,19 +643,16 @@ export class PositionsService {
 
 	private async fetchMintingUpdatesPosition(position: Address, version: number): Promise<ApiMintingUpdateListing> {
 		if (version == 1) {
-			const { data } = await PONDER_CLIENT.query<{
-				mintingHubV1MintingUpdateV1s: {
-					items: MintingUpdateQueryV1[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
+			const items = await this.fetchAllPages<MintingUpdateQueryV1>(
+				PONDER_CLIENT,
+				gql`
+					query ($after: String) {
 						mintingHubV1MintingUpdateV1s(
 							orderBy: "count"
 						 	orderDirection: "desc"
 							where: { position: "${normalizeAddress(position)}" }
 							limit: 1000
+							after: $after
 							) {
 							items {
 								count
@@ -648,35 +677,28 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV1MintingUpdateV1s'
+			);
 
-			if (!data || !data?.mintingHubV1MintingUpdateV1s?.items?.length) {
-				this.logger.warn('No MintingUpdates V1 found.');
-				return {
-					num: 0,
-					list: [],
-				};
-			}
-
-			const items: MintingUpdateQuery[] = data.mintingHubV1MintingUpdateV1s.items;
+			if (!items.length) this.logger.warn('No MintingUpdates V1 found.');
 
 			return {
 				num: items.length,
 				list: items,
 			};
 		} else {
-			const { data } = await PONDER_CLIENT.query<{
-				mintingHubV2MintingUpdateV2s: {
-					items: MintingUpdateQueryV2[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
-						mintingHubV2MintingUpdateV2s(where: { position: "${normalizeAddress(position)}" }, orderBy: "count", orderDirection: "desc", limit: 1000) {
+			const items = await this.fetchAllPages<MintingUpdateQueryV2>(
+				PONDER_CLIENT,
+				gql`
+					query ($after: String) {
+						mintingHubV2MintingUpdateV2s(where: { position: "${normalizeAddress(position)}" }, orderBy: "count", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								count
 								txHash
@@ -702,20 +724,17 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV2MintingUpdateV2s'
+			);
 
-			if (!data || !data?.mintingHubV2MintingUpdateV2s?.items?.length) {
-				this.logger.warn('No MintingUpdates V2 found.');
-				return {
-					num: 0,
-					list: [],
-				};
-			}
-
-			const items: MintingUpdateQuery[] = data.mintingHubV2MintingUpdateV2s.items;
+			if (!items.length) this.logger.warn('No MintingUpdates V2 found.');
 
 			return {
 				num: items.length,
@@ -729,17 +748,16 @@ export class PositionsService {
 	}
 
 	private async fetchMintingUpdatesOwner(owner: Address): Promise<ApiMintingUpdateListing> {
-		const { data: version1 } = await PONDER_CLIENT.query<{
-			mintingHubV1MintingUpdateV1s: { items: MintingUpdateQueryV1[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
+		const version1 = await this.fetchAllPages<MintingUpdateQueryV1>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
 						mintingHubV1MintingUpdateV1s(
 							orderBy: "created"
 						 	orderDirection: "desc"
 							where: { owner: "${normalizeAddress(owner)}" }
 							limit: 1000
+							after: $after
 							) {
 							items {
 								count
@@ -764,16 +782,21 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV1MintingUpdateV1s'
+		);
 
-		const { data: version2 } = await PONDER_CLIENT.query<{ mintingHubV2MintingUpdateV2s: { items: MintingUpdateQueryV2[] } }>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
-						mintingHubV2MintingUpdateV2s(where: { owner: "${normalizeAddress(owner)}" }, orderBy: "count", orderDirection: "desc", limit: 1000) {
+		const version2 = await this.fetchAllPages<MintingUpdateQueryV2>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
+						mintingHubV2MintingUpdateV2s(where: { owner: "${normalizeAddress(owner)}" }, orderBy: "count", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								count
 								txHash
@@ -799,15 +822,17 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV2MintingUpdateV2s'
+		);
 
-		const items: MintingUpdateQuery[] = [
-			...version1.mintingHubV1MintingUpdateV1s.items,
-			...version2.mintingHubV2MintingUpdateV2s.items,
-		];
+		const items: MintingUpdateQuery[] = [...version1, ...version2];
 
 		return {
 			num: items.length,
@@ -823,15 +848,11 @@ export class PositionsService {
 		const client = currentSource === 'primary' ? PONDER_CLIENT : PONDER_CLIENT_BACKUP;
 
 		try {
-			const { data } = await client!.query<{
-				mintingHubV1MintingUpdateV1s: {
-					items: MintingUpdateQueryV1[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
-						mintingHubV1MintingUpdateV1s(orderBy: "created", orderDirection: "desc", limit: 1000) {
+			const items = await this.fetchAllPages<MintingUpdateQueryV1>(
+				client!,
+				gql`
+					query ($after: String) {
+						mintingHubV1MintingUpdateV1s(orderBy: "created", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								txHash
 								count
@@ -855,17 +876,21 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV1MintingUpdateV1s'
+			);
 
-			if (!data || !data?.mintingHubV1MintingUpdateV1s?.items?.length) {
+			if (!items.length) {
 				this.logger.warn('No MintingUpdates V1 found.');
 				return;
 			}
 
-			const items: MintingUpdateQuery[] = data.mintingHubV1MintingUpdateV1s.items;
 			const list: MintingUpdateQueryObjectArray = {};
 
 			for (let idx = 0; idx < items.length; idx++) {
@@ -926,15 +951,11 @@ export class PositionsService {
 		const client = currentSource === 'primary' ? PONDER_CLIENT : PONDER_CLIENT_BACKUP;
 
 		try {
-			const { data } = await client!.query<{
-				mintingHubV2MintingUpdateV2s: {
-					items: MintingUpdateQueryV2[];
-				};
-			}>({
-				fetchPolicy: 'no-cache',
-				query: gql`
-					query {
-						mintingHubV2MintingUpdateV2s(orderBy: "created", orderDirection: "desc", limit: 1000) {
+			const items = await this.fetchAllPages<MintingUpdateQueryV2>(
+				client!,
+				gql`
+					query ($after: String) {
+						mintingHubV2MintingUpdateV2s(orderBy: "created", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								txHash
 								count
@@ -960,17 +981,21 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-			});
+				'mintingHubV2MintingUpdateV2s'
+			);
 
-			if (!data || !data?.mintingHubV2MintingUpdateV2s?.items?.length) {
+			if (!items.length) {
 				this.logger.warn('No MintingUpdates V2 found.');
 				return;
 			}
 
-			const items: MintingUpdateQuery[] = data.mintingHubV2MintingUpdateV2s.items;
 			const list: MintingUpdateQueryObjectArray = {};
 
 			for (let idx = 0; idx < items.length; idx++) {
@@ -1030,17 +1055,16 @@ export class PositionsService {
 	}
 
 	private async fetchOwnerFees(owner: Address): Promise<ApiMintingUpdateListing> {
-		const { data: version1 } = await PONDER_CLIENT.query<{
-			mintingHubV1MintingUpdateV1s: { items: MintingUpdateQueryV1[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
+		const version1 = await this.fetchAllPages<MintingUpdateQueryV1>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
 						mintingHubV1MintingUpdateV1s(
 							orderBy: "created"
 						 	orderDirection: "desc"
 							where: { owner: "${normalizeAddress(owner)}", feePaid_gt: "0" }
 							limit: 1000
+							after: $after
 							) {
 							items {
 								count
@@ -1065,16 +1089,21 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV1MintingUpdateV1s'
+		);
 
-		const { data: version2 } = await PONDER_CLIENT.query<{ mintingHubV2MintingUpdateV2s: { items: MintingUpdateQueryV2[] } }>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
-						mintingHubV2MintingUpdateV2s(where: { owner: "${normalizeAddress(owner)}", feePaid_gt: "0" }, orderBy: "count", orderDirection: "desc", limit: 1000) {
+		const version2 = await this.fetchAllPages<MintingUpdateQueryV2>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
+						mintingHubV2MintingUpdateV2s(where: { owner: "${normalizeAddress(owner)}", feePaid_gt: "0" }, orderBy: "count", orderDirection: "desc", limit: 1000, after: $after) {
 							items {
 								count
 								txHash
@@ -1100,15 +1129,17 @@ export class PositionsService {
 								feePPM
 								feePaid
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV2MintingUpdateV2s'
+		);
 
-		const items: MintingUpdateQuery[] = [
-			...version1.mintingHubV1MintingUpdateV1s.items,
-			...version2.mintingHubV2MintingUpdateV2s.items,
-		];
+		const items: MintingUpdateQuery[] = [...version1, ...version2];
 
 		return {
 			num: items.length,
@@ -1206,17 +1237,16 @@ export class PositionsService {
 	}
 
 	private async fetchOwnerTransfers(owner: Address): Promise<ApiOwnerTransfersListing> {
-		const { data: version1 } = await PONDER_CLIENT.query<{
-			mintingHubV1OwnerTransfersV1s: { items: OwnerTransferQuery[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
+		const version1 = await this.fetchAllPages<OwnerTransferQuery>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
 						mintingHubV1OwnerTransfersV1s(
 							orderBy: "created"
 						 	orderDirection: "desc"
 							where: { OR: [ { previousOwner: "${normalizeAddress(owner)}" }, { newOwner: "${normalizeAddress(owner)}" }] }
 							limit: 1000
+							after: $after
 							) {
 							items {
 								version
@@ -1227,22 +1257,26 @@ export class PositionsService {
 								previousOwner
 								newOwner
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV1OwnerTransfersV1s'
+		);
 
-		const { data: version2 } = await PONDER_CLIENT.query<{
-			mintingHubV2OwnerTransfersV2s: { items: OwnerTransferQuery[] };
-		}>({
-			fetchPolicy: 'no-cache',
-			query: gql`
-					query {
+		const version2 = await this.fetchAllPages<OwnerTransferQuery>(
+			PONDER_CLIENT,
+			gql`
+					query ($after: String) {
 						mintingHubV2OwnerTransfersV2s(
 							orderBy: "created"
 						 	orderDirection: "desc"
 							where: { OR: [ { previousOwner: "${normalizeAddress(owner)}" }, { newOwner: "${normalizeAddress(owner)}" }] }
 							limit: 1000
+							after: $after
 							) {
 							items {
 								version
@@ -1253,15 +1287,17 @@ export class PositionsService {
 								previousOwner
 								newOwner
 							}
+							pageInfo {
+								endCursor
+								hasNextPage
+							}
 						}
 					}
 				`,
-		});
+			'mintingHubV2OwnerTransfersV2s'
+		);
 
-		const items: OwnerTransferQuery[] = [
-			...version1.mintingHubV1OwnerTransfersV1s.items,
-			...version2.mintingHubV2OwnerTransfersV2s.items,
-		].sort((a, b) => a.created - b.created);
+		const items: OwnerTransferQuery[] = [...version1, ...version2].sort((a, b) => a.created - b.created);
 
 		return {
 			num: items.length,
