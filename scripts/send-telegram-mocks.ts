@@ -159,6 +159,8 @@ const mockChallenge: any = {
 	status: 'Active' as any,
 };
 
+const mockChallengedPct = ((Number(mockChallenge.size) - Number(mockChallenge.filledSize)) / Number(mockPosition.collateralBalance)) * 100;
+
 const mockBid: any = {
 	version: 2,
 	id: `${ADDR_POS}-bid-1` as any,
@@ -362,8 +364,14 @@ const messages: Array<{ label: string; text: string }> = [
 	{ label: 'PositionExpired (v1)', text: PositionExpiredMessage({ ...mockPosition, version: 1, expiration: now - 3600 }) },
 	{ label: 'PositionExpired (v2)', text: PositionExpiredMessage({ ...mockPosition, expiration: now - 3600 }) },
 	{ label: 'PriceWarning', text: PositionPriceWarning(mockPosition, mockPrices[ADDR_COL.toLowerCase()], mockPriceState) },
-	{ label: 'PriceAlert', text: PositionPriceAlert(mockPosition, mockPricesAlert[ADDR_COL.toLowerCase()], mockPriceState) },
-	{ label: 'PriceLowest', text: PositionPriceLowest(mockPosition, mockPricesUndercol[ADDR_COL.toLowerCase()], mockPriceState) },
+	{
+		label: 'PriceAlert',
+		text: PositionPriceAlert(mockPosition, mockPricesAlert[ADDR_COL.toLowerCase()], mockPriceState, mockChallengedPct),
+	},
+	{
+		label: 'PriceLowest',
+		text: PositionPriceLowest(mockPosition, mockPricesUndercol[ADDR_COL.toLowerCase()], mockPriceState, mockChallengedPct),
+	},
 	{ label: 'ChallengeStarted', text: ChallengeStartedMessage(mockPosition, mockChallenge) },
 	{ label: 'BidTaken', text: BidTakenMessage(mockPosition, mockChallenge, mockBid) },
 	{ label: 'MintingUpdate', text: MintingUpdateMessage(mockMinting, mockPrices) },

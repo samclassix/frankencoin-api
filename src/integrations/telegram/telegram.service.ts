@@ -8,6 +8,7 @@ import { PositionProposalMessage } from './messages/PositionProposal.message';
 import { PrismaService } from 'core/database/prisma.service';
 import { WelcomeGroupMessage } from './messages/WelcomeGroup.message';
 import { ChallengesService } from 'modules/challenges/challenges.service';
+import { ChallengesQueryStatus } from 'modules/challenges/challenges.types';
 import { ChallengeStartedMessage } from './messages/ChallengeStarted.message';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PricesService } from 'modules/prices/prices.service';
@@ -487,18 +488,26 @@ export class TelegramService {
 				lowestPrice: 0,
 			};
 
+			const activeChallenges = (this.challenge.getChallengesPositions().map[posAddr] ?? []).filter(
+				(c) => c.status === ChallengesQueryStatus.Active
+			);
+			const challengedSize = activeChallenges.reduce((sum, c) => sum + (BigInt(c.size) - BigInt(c.filledSize)), 0n);
+			const balance = BigInt(p.collateralBalance);
+			const challengedPct = balance > 0n ? Number((challengedSize * 10000n) / balance) / 100 : 0;
+
 			if (price < posPrice * THRES_LOWEST) {
 				if (last.lowestTimestamp + DELAY_LOWEST < Date.now()) {
 					if (last.lowestPrice === 0 || last.lowestPrice * 0.98 > price) {
 						const lowestRecipients = this.mergeRecipients(recipients, governanceRecipients);
-						!isSoftStart && (await this.sendMessageGroup(lowestRecipients, PositionPriceLowest(p, priceQuery, last)));
+						!isSoftStart &&
+							(await this.sendMessageGroup(lowestRecipients, PositionPriceLowest(p, priceQuery, last, challengedPct)));
 						last.lowestPrice = price;
 					}
 					last.lowestTimestamp = Date.now();
 				}
 			} else if (price < posPrice * THRES_ALERT) {
 				if (last.alertTimestamp + DELAY_ALERT < Date.now()) {
-					!isSoftStart && (await this.sendMessageGroup(recipients, PositionPriceAlert(p, priceQuery, last)));
+					!isSoftStart && (await this.sendMessageGroup(recipients, PositionPriceAlert(p, priceQuery, last, challengedPct)));
 					last.alertTimestamp = Date.now();
 				}
 			} else if (price < posPrice * THRES_WARN) {
